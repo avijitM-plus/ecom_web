@@ -1,164 +1,159 @@
-// JavaScript for interactive elements
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // ===== CAROUSEL FUNCTIONALITY =====
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.carousel-slide');
-    const indicators = document.querySelectorAll('.indicator');
-    const totalSlides = slides.length;
-    let autoplayInterval;
-    
-    function showSlide(index) {
-        // Hide all slides
-        slides.forEach(slide => slide.style.opacity = '0');
-        
-        // Update indicators
-        indicators.forEach((indicator, i) => {
-            if (i === index) {
-                indicator.classList.add('active');
-            } else {
-                indicator.classList.remove('active');
-            }
-        });
-        
-        // Show current slide
-        slides[index].style.opacity = '1';
-        currentSlide = index;
-    }
-    
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides;
-        showSlide(currentSlide);
-    }
-    
-    function prevSlide() {
-        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        showSlide(currentSlide);
-    }
-    
-    function startAutoplay() {
-        autoplayInterval = setInterval(nextSlide, 4000); // Change slide every 4 seconds
-    }
-    
-    function resetAutoplay() {
-        clearInterval(autoplayInterval);
+// Centralized, defensive JavaScript for interactive elements
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== CAROUSEL FUNCTIONALITY (guarded) =====
+    (function initCarousel() {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
+        let autoplayInterval;
+
+        if (totalSlides === 0 || indicators.length === 0) return;
+
+        function showSlide(index) {
+            slides.forEach(slide => slide.style.opacity = '0');
+            indicators.forEach((indicator, i) => indicator.classList.toggle('active', i === index));
+            slides[index].style.opacity = '1';
+            currentSlide = index;
+        }
+
+        function nextSlide() { currentSlide = (currentSlide + 1) % totalSlides; showSlide(currentSlide); }
+        function startAutoplay() { autoplayInterval = setInterval(nextSlide, 4000); }
+        function resetAutoplay() { clearInterval(autoplayInterval); startAutoplay(); }
+
+        indicators.forEach(indicator => indicator.addEventListener('click', function () { const index = parseInt(this.getAttribute('data-index')) || 0; showSlide(index); resetAutoplay(); }));
+
+        showSlide(0);
         startAutoplay();
-    }
-    
-    // Indicator buttons - Click to navigate
-    indicators.forEach(indicator => {
-        indicator.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            showSlide(index);
-            resetAutoplay();
-        });
-    });
-    
-    // Initialize first slide and start autoplay
-    showSlide(0);
-    startAutoplay();
-    
-    // ===== ADD TO CART BUTTONS =====
-    const addToCartButtons = document.querySelectorAll('.add-to-cart');
-    const cartCount = document.querySelector('.bg-accent');
-    let count = 3;
-    
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function() {
+    })();
+
+    // ===== ADD TO CART (guarded) =====
+    (function initAddToCart() {
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        const cartCountEl = document.querySelector('.bg-accent');
+        if (!addToCartButtons.length || !cartCountEl) return;
+        let count = parseInt(cartCountEl.textContent) || 0;
+
+        addToCartButtons.forEach(button => button.addEventListener('click', function () {
             count++;
-            cartCount.textContent = count;
-            
-            // Animation effect
+            cartCountEl.textContent = count;
             const originalHTML = button.innerHTML;
             button.innerHTML = '<i class="fas fa-check"></i>';
             button.classList.remove('bg-electric');
             button.classList.add('bg-green-500');
-            
-            setTimeout(() => {
-                button.innerHTML = originalHTML;
-                button.classList.remove('bg-green-500');
-                button.classList.add('bg-electric');
-            }, 1500);
-        });
-    });
-    
-    // ===== SEARCH FUNCTIONALITY =====
-    const searchInput = document.querySelector('input[type="text"]');
-    const searchButton = document.querySelector('.fa-search').parentElement;
-    
-    searchButton.addEventListener('click', function() {
-        if (searchInput.value.trim() !== '') {
-            alert(`Searching for: ${searchInput.value}`);
-        } else {
-            alert('Please enter a search term');
+            setTimeout(() => { button.innerHTML = originalHTML; button.classList.remove('bg-green-500'); button.classList.add('bg-electric'); }, 1500);
+        }));
+    })();
+
+    // ===== SEARCH (guarded) =====
+    (function initSearch() {
+        const searchInput = document.querySelector('input[type="text"]');
+        const searchIcon = document.querySelector('.fa-search');
+        if (!searchInput || !searchIcon) return;
+        const searchButton = searchIcon.closest('button') || searchIcon.parentElement;
+        if (searchButton) searchButton.addEventListener('click', function () { if (searchInput.value.trim() !== '') alert(`Searching for: ${searchInput.value}`); else alert('Please enter a search term'); });
+        searchInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') { if (searchInput.value.trim() !== '') alert(`Searching for: ${searchInput.value}`); else alert('Please enter a search term'); } });
+    })();
+
+    // ===== COUNTDOWN (guarded) =====
+    (function initCountdown() {
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        if (!daysEl || !hoursEl || !minutesEl) return;
+
+        function updateCountdown() {
+            const countdownDate = new Date();
+            countdownDate.setDate(countdownDate.getDate() + 2);
+            const now = Date.now();
+            const distance = countdownDate - now;
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            daysEl.textContent = String(days).padStart(2, '0');
+            hoursEl.textContent = String(hours).padStart(2, '0');
+            minutesEl.textContent = String(minutes).padStart(2, '0');
         }
-    });
-    
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            if (searchInput.value.trim() !== '') {
-                alert(`Searching for: ${searchInput.value}`);
-            } else {
-                alert('Please enter a search term');
-            }
-        }
-    });
-    
-    // ===== COUNTDOWN TIMER FOR FLASH SALE =====
-    function updateCountdown() {
-        const countdownDate = new Date();
-        countdownDate.setDate(countdownDate.getDate() + 2); // 2 days from now
-        
-        const now = new Date().getTime();
-        const distance = countdownDate - now;
-        
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        
-        document.getElementById('days').textContent = days.toString().padStart(2, '0');
-        document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-        document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-    }
-    
-    // Update countdown every minute
-    updateCountdown();
-    setInterval(updateCountdown, 60000);
-    
-    // ===== NEWSLETTER SUBSCRIPTION =====
-    const newsletterButton = document.querySelector('.bg-accent');
-    newsletterButton.addEventListener('click', function() {
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+    })();
+
+    // ===== NEWSLETTER (guarded) =====
+    (function initNewsletter() {
+        const newsletterButton = document.querySelector('.bg-accent');
         const emailInput = document.querySelector('input[type="email"]');
-        if (emailInput.value.trim() !== '' && emailInput.value.includes('@')) {
-            alert('Thank you for subscribing to our newsletter!');
-            emailInput.value = '';
-        } else {
-            alert('Please enter a valid email address');
-        }
-    });
-    
-    // ===== DARK MODE TOGGLE =====
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const htmlElement = document.documentElement;
-    
-    // Check for saved dark mode preference or default to system preference
-    const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
-                      (window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'false');
-    
-    // Set initial state
-    if (isDarkMode) {
-        htmlElement.classList.add('dark');
-        darkModeToggle.checked = true;
-    }
-    
-    // Toggle dark mode
-    darkModeToggle.addEventListener('change', function() {
-        if (this.checked) {
+        if (!newsletterButton || !emailInput) return;
+        newsletterButton.addEventListener('click', function () { if (emailInput.value.trim() !== '' && emailInput.value.includes('@')) { alert('Thank you for subscribing to our newsletter!'); emailInput.value = ''; } else alert('Please enter a valid email address'); });
+    })();
+
+    // ===== MOBILE MENU (site-wide, guarded) =====
+    (function initMobileMenu() {
+        const menuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (!menuButton || !mobileMenu) return;
+        function setAriaExpanded(el, state) { el.setAttribute('aria-expanded', String(state)); }
+        menuButton.addEventListener('click', function () {
+            const isOpen = !mobileMenu.classList.contains('hidden');
+            mobileMenu.classList.toggle('hidden');
+            setAriaExpanded(menuButton, !isOpen);
+            const icon = menuButton.querySelector('i');
+            if (icon) {
+                if (!isOpen) { icon.classList.remove('fa-bars'); icon.classList.add('fa-xmark'); icon.classList.remove('fa-times'); }
+                else { icon.classList.remove('fa-xmark'); icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
+            }
+        });
+    })();
+
+    // ===== DARK MODE (robust, stored-first) =====
+    (function initDarkMode() {
+        const htmlElement = document.documentElement;
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        // Get stored preference or system preference
+        const stored = localStorage.getItem('darkMode');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = stored === 'true' || (stored === null && prefersDark);
+
+        // Apply initial state
+        if (isDark) {
             htmlElement.classList.add('dark');
-            localStorage.setItem('darkMode', 'true');
         } else {
             htmlElement.classList.remove('dark');
-            localStorage.setItem('darkMode', 'false');
         }
-    });
+
+        // Set toggle state if it exists
+        if (darkModeToggle) {
+            darkModeToggle.checked = isDark;
+
+            // Listen to toggle changes
+            darkModeToggle.addEventListener('change', function () {
+                if (this.checked) {
+                    htmlElement.classList.add('dark');
+                    localStorage.setItem('darkMode', 'true');
+                } else {
+                    htmlElement.classList.remove('dark');
+                    localStorage.setItem('darkMode', 'false');
+                }
+            });
+        }
+
+        // Listen to system preference changes (only if user hasn't set a preference)
+        try {
+            if (window.matchMedia) {
+                const mq = window.matchMedia('(prefers-color-scheme: dark)');
+                const handler = function (e) {
+                    if (localStorage.getItem('darkMode') === null) {
+                        htmlElement.classList.toggle('dark', e.matches);
+                        if (darkModeToggle) darkModeToggle.checked = e.matches;
+                    }
+                };
+                if (mq.addEventListener) mq.addEventListener('change', handler);
+                else if (mq.addListener) mq.addListener(handler);
+            }
+        } catch (err) {
+            // Ignore errors
+        }
+    })();
+
 });

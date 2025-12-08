@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Privacy Policy - RoboMart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1e40af',
+                        accent: '#f59e0b',
+                        electric: '#06b6d4',
+                        tech: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+
+</head>
+<body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg transition duration-300">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between py-4">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center"><i class="fas fa-bolt text-white text-lg"></i></div>
+          <span class="text-xl font-bold text-gray-800 dark:text-white">RoboMart</span>
+        </a>
+        <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+          <div class="relative w-full">
+            <input type="text" placeholder="Search robotics, electronics, IoT devices..." class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-electric focus:border-transparent dark:placeholder-gray-400">
+            <button class="absolute right-0 top-0 h-full px-4 text-gray-500 dark:text-gray-400 hover:text-electric dark:hover:text-electric"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+        <div class="flex items-center space-x-6">
+          <label class="dark-mode-toggle"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label>
+          <button id="mobileMenuButton" class="md:hidden text-gray-700 dark:text-gray-300" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle menu"><i class="fas fa-bars text-xl" aria-hidden="true"></i></button>
+        </div>
+      </div>
+      <nav class="hidden md:flex py-3 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex space-x-8">
+          <a href="index.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Home</a>
+          <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Robotics</a>
+          <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Microcontrollers</a>
+          <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">IoT Devices</a>
+        </div>
+      </nav>
+      <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="px-4 pt-4 pb-6 space-y-4">
+          <a href="index.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Home</a>
+          <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Robotics</a>
+          <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Microcontrollers</a>
+          <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">IoT Devices</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-4">Privacy Policy</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-4">This demo site does not collect personal data. In production, provide clear disclosures about data collection, cookies, and third-party services.</p>
+    <h2 class="mt-6 font-semibold">Data Collection</h2>
+    <p class="text-gray-600 dark:text-gray-400">No personal data is stored by this static demo. Hook up server-side storage and secure practices for real applications.</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
