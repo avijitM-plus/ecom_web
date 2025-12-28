@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // You would need to add this to the user_sessions table
             }
             
-            // Redirect to account page
+
             redirect('account.php');
         } else {
             $error = "Invalid email or password.";
@@ -139,14 +139,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between py-4">
-                <a href="index.html" class="flex items-center space-x-2">
+                <a href="index.php" class="flex items-center space-x-2">
                     <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center">
                         <i class="fas fa-bolt text-white text-lg"></i>
                     </div>
                     <span class="text-xl font-bold text-gray-800 dark:text-white">RoboMart</span>
                 </a>
                 <div class="flex items-center space-x-4">
-                    <a href="index.html" class="text-gray-700 dark:text-gray-300 hover:text-electric">Back to Home</a>
+                    <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric">Back to Home</a>
                 </div>
             </div>
         </div>

@@ -44,10 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $success = "Account created successfully! You can now log in.";
                 
-                // Optional: Auto-login after registration
-                // $user_id = $pdo->lastInsertId();
-                // create_session($user_id, $email, $full_name);
-                // redirect('account.php');
+                // Auto-login after registration
+                $user_id = $pdo->lastInsertId();
+                create_session($user_id, $email, $full_name);
+                redirect('account.php');
                 
             } catch (PDOException $e) {
                 error_log("Registration Error: " . $e->getMessage());
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg transition duration-300">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between py-4">
-                <a href="index.html" class="flex items-center space-x-2">
+                <a href="index.php" class="flex items-center space-x-2">
                     <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center">
                         <i class="fas fa-bolt text-white text-lg"></i>
                     </div>

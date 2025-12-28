@@ -60,7 +60,7 @@ if (!$user) {
             <!-- Top Bar -->
             <div class="flex items-center justify-between py-4">
                 <!-- Logo -->
-                <a href="index.html" class="flex items-center space-x-2">
+                <a href="index.php" class="flex items-center space-x-2">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
                         <i class="fas fa-bolt text-white text-lg"></i>
                     </div>
@@ -108,7 +108,7 @@ if (!$user) {
             <!-- Navigation -->
                 <nav class="hidden md:flex py-3 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex space-x-8">
-                    <a href="index.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Home</a>
+                    <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Home</a>
                     <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Robotics</a>
                     <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Microcontrollers</a>
                     <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">IoT Devices</a>
@@ -199,7 +199,7 @@ if (!$user) {
                         <div class="w-8 h-8 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
                             <i class="fas fa-bolt text-white"></i>
                         </div>
-                        <a href="index.html" class="text-xl font-bold">RoboMart</a>
+                        <a href="index.php" class="text-xl font-bold">RoboMart</a>
                     </div>
                     <p class="text-gray-400 dark:text-gray-500 mb-4">Leading supplier of robotics kits, electronics components, IoT devices, and AI solutions.</p>
                     <div class="flex space-x-4">
