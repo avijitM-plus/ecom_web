@@ -10,5 +10,5 @@ require_once 'config.php';
 destroy_session();
 
 // Redirect to home page
-redirect('index.html');
+redirect('index.php');
 ?>

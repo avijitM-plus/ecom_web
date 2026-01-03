@@ -29,40 +29,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = get_user_by_email($pdo, $email);
         
         if ($user && verify_password($password, $user['password_hash'])) {
-            // Successful login
-            create_session($user['id'], $user['email'], $user['full_name']);
-            
-            // Handle "Remember Me" functionality
-            if ($remember_me) {
-                // Set cookie for 30 days
-                $cookie_token = bin2hex(random_bytes(32));
-                setcookie('remember_token', $cookie_token, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+            // Check if user is active
+            if (isset($user['is_active']) && $user['is_active'] == 0) {
+                $error = "Your account has been deactivated. Please contact support.";
+            } else {
+                // Successful login - include role in session
+                $role = isset($user['role']) ? $user['role'] : 'user';
+                create_session($user['id'], $user['email'], $user['full_name'], $role);
                 
-                // Store token in database (optional enhancement)
-                // You would need to add this to the user_sessions table
+                // Handle "Remember Me" functionality
+                if ($remember_me) {
+                    // Set cookie for 30 days
+                    $cookie_token = bin2hex(random_bytes(32));
+                    setcookie('remember_token', $cookie_token, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+                }
+                
+                // Redirect based on role
+                if ($role === 'admin') {
+                    redirect('backend/index.php');
+                } else {
+                    redirect('account.php');
+                }
             }
-            
-
-            redirect('account.php');
         } else {
             $error = "Invalid email or password.";
         }
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - RoboMart</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<?php
+$page_title = "Login";
+$hide_nav = true;
+include 'includes/header.php';
+?>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
         .gradient-bg {
             background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
         }
@@ -79,78 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
         }
-        .dark-mode-toggle { 
-            position: relative; 
-            display: inline-block; 
-            width: 60px; 
-            height: 30px; 
-        }
-        .dark-mode-toggle input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-        .slider { 
-            position: absolute; 
-            cursor: pointer; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background-color: #ccc; 
-            transition: 0.4s; 
-            border-radius: 30px; 
-        }
-        .slider:before { 
-            position: absolute; 
-            content: ""; 
-            height: 22px; 
-            width: 22px; 
-            left: 4px; 
-            bottom: 4px; 
-            background-color: white; 
-            transition: 0.4s; 
-            border-radius: 50%; 
-        }
-        input:checked + .slider { 
-            background-color: #06b6d4; 
-        }
-        input:checked + .slider:before { 
-            transform: translateX(30px); 
-        }
-
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        electric: '#06b6d4',
-                        tech: '#8b5cf6',
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-gray-50 dark:bg-gray-950">
-    <!-- Navigation -->
-    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between py-4">
-                <a href="index.php" class="flex items-center space-x-2">
-                    <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center">
-                        <i class="fas fa-bolt text-white text-lg"></i>
-                    </div>
-                    <span class="text-xl font-bold text-gray-800 dark:text-white">RoboMart</span>
-                </a>
-                <div class="flex items-center space-x-4">
-                    <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric">Back to Home</a>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <!-- Login Form -->
     <div class="min-h-screen flex items-center justify-center px-4 py-12">
@@ -237,13 +166,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <script>
-        // Dark mode toggle for consistency
-        const htmlElement = document.documentElement;
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-            htmlElement.classList.add('dark');
-        }
-    </script>
-</body>
-</html>
+    <?php include 'includes/footer.php'; ?>

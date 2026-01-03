@@ -3,250 +3,9 @@
  * Home Page - RoboMart E-commerce Platform
  */
 require_once 'config.php';
-
-// Check if user is logged in
-$is_logged_in = is_logged_in();
-$user_name = $is_logged_in ? $_SESSION['full_name'] : '';
+$page_title = "Home";
+include 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoboMart - Robotics, Electronics & IoT Solutions</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#1e40af',
-                        accent: '#f59e0b',
-                        electric: '#06b6d4',
-                        tech: '#8b5cf6',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'pulse-slow': 'pulse 3s infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                        'slide-in-left': 'slideInLeft 0.8s ease-out',
-                        'slide-in-right': 'slideInRight 0.8s ease-out',
-                        'bounce-in': 'bounceIn 0.6s ease-out',
-                        'text-glow': 'textGlow 2s ease-in-out infinite',
-                        'pulse-text': 'pulseText 2s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        slideInLeft: {
-                            '0%': { transform: 'translateX(-60px)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' },
-                        },
-                        slideInRight: {
-                            '0%': { transform: 'translateX(60px)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' },
-                        },
-                        bounceIn: {
-                            '0%': { transform: 'scale(0.5)', opacity: '0' },
-                            '50%': { transform: 'scale(1.05)' },
-                            '100%': { transform: 'scale(1)', opacity: '1' },
-                        },
-                        textGlow: {
-                            '0%, 100%': { textShadow: '0 0 5px rgba(6, 182, 212, 0.5)' },
-                            '50%': { textShadow: '0 0 20px rgba(6, 182, 212, 1)' },
-                        },
-                        pulseText: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.7' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            .gradient-bg {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-            
-            .tech-gradient {
-                background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
-            }
-            
-            .dark .tech-gradient {
-                background: linear-gradient(135deg, #164e63 0%, #3f3b5f 100%);
-            }
-            
-            .hover-lift {
-                transition: all 0.3s ease;
-            }
-            
-            .hover-lift:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            }
-            
-            .glow {
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-            }
-            
-            .dark-mode-toggle {
-                position: relative;
-                display: inline-block;
-                width: 60px;
-                height: 30px;
-            }
-            
-            .dark-mode-toggle input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-            
-            .slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #ccc;
-                transition: 0.4s;
-                border-radius: 30px;
-            }
-            
-            .slider:before {
-                position: absolute;
-                content: "";
-                height: 22px;
-                width: 22px;
-                left: 4px;
-                bottom: 4px;
-                background-color: white;
-                transition: 0.4s;
-                border-radius: 50%;
-            }
-            
-            input:checked + .slider {
-                background-color: #06b6d4;
-            }
-            
-            input:checked + .slider:before {
-                transform: translateX(30px);
-            }
-        }
-    </style>
-</head>
-
-<body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition duration-300">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg transition duration-300">
-        <div class="container mx-auto px-4">
-            <!-- Top Bar -->
-            <div class="flex items-center justify-between py-4">
-                <!-- Logo -->
-                <a href="index.php" class="flex items-center space-x-2">
-                    <div
-                        class="w-10 h-10 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
-                        <i class="fas fa-bolt text-white text-lg"></i>
-                    </div>
-                    <span class="text-xl font-bold text-gray-800 dark:text-white">RoboMart</span>
-                </a>
-
-                <!-- Search Bar -->
-                <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-                    <div class="relative w-full">
-                        <input type="text" placeholder="Search robotics, electronics, IoT devices..."
-                            class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-electric focus:border-transparent dark:placeholder-gray-400">
-                        <button
-                            class="absolute right-0 top-0 h-full px-4 text-gray-500 dark:text-gray-400 hover:text-electric dark:hover:text-electric">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- User Actions -->
-                <div class="flex items-center space-x-6">
-                    <!-- Dark Mode Toggle -->
-                    <label class="dark-mode-toggle">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-
-                    <div
-                        class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
-                        <i class="far fa-user text-lg"></i>
-                        <?php if ($is_logged_in): ?>
-                            <span class="font-medium"><a href="account.php">Hi, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?></a></span>
-                        <?php else: ?>
-                            <span class="font-medium"><a href="login.php">Account</a></span>
-                        <?php endif; ?>
-                    </div>
-                    <div
-                        class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
-                        <i class="far fa-heart text-lg"></i>
-                        <span class="font-medium">Wishlist</span>
-                    </div>
-                    <a href="cart.html"
-                        class="flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer relative dark:text-gray-300 dark:hover:text-electric">
-                        <i class="fas fa-shopping-cart text-lg"></i>
-                        <span class="font-medium">Cart</span>
-                        <span
-                            class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                    </a>
-                    <button class="md:hidden text-gray-700 dark:text-gray-300">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Navigation -->
-            <nav class="hidden md:flex py-3 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex space-x-8">
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Robotics</a>
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Microcontrollers</a>
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">IoT
-                        Devices</a>
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">AI
-                        & ML</a>
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Components</a>
-                    <a href="products.html"
-                        class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Kits
-                        & Tools</a>
-                    <a href="products.html" class="text-electric dark:text-electric font-medium">Flash Sale</a>
-                </div>
-            </nav>
-        </div>
-    </header>
 
     <!-- Hero Section -->
     <section
@@ -419,7 +178,7 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
             <div class="flex justify-between items-center mb-10">
                 <h2 class="text-3xl font-bold text-gray-800 dark:text-white animate-slide-in-left">Best Selling Products
                 </h2>
-                <a href="products.html"
+                <a href="products.php"
                     class="text-electric font-semibold flex items-center hover:translate-x-1 transition duration-300">
                     View All
                     <i class="fas fa-arrow-right ml-2"></i>
@@ -427,228 +186,122 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Product 1 -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/30 hover-lift group transform hover:scale-105 transition duration-300">
-                    <div
-                        class="relative overflow-hidden h-56 bg-gradient-to-br from-electric/10 to-tech/10 dark:from-electric/20 dark:to-tech/20">
-                        <img src="images/5.jpg" alt="Industrial Robot Arm"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div
-                            class="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold animate-pulse">
-                            -25%
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-white">Robotic Arm Pro</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">6-DOF Industrial Robot</p>
-                        <div class="flex items-center mb-2">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                            </div>
-                            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">(156)</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="text-lg font-bold text-gray-900 dark:text-white">$1,299</span>
-                                <span class="text-gray-500 dark:text-gray-400 line-through text-sm ml-2">$1,749</span>
-                            </div>
-                            <button
-                                class="bg-electric text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-tech transition duration-300 add-to-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <?php
+                // Fetch featured products for Best Sellers
+                $products = get_featured_products($pdo, 8);
 
-                <!-- Product 2 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/30 hover-lift group transform hover:scale-105 transition duration-300"
-                    style="animation-delay: 0.1s;">
-                    <div
-                        class="relative overflow-hidden h-56 bg-gradient-to-br from-electric/10 to-tech/10 dark:from-electric/20 dark:to-tech/20">
-                        <img src="images/1.jpg" alt="Arduino Kit"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                if (empty($products)):
+                ?>
+                    <div class="col-span-full text-center text-gray-500 dark:text-gray-400 py-10">
+                        <p class="text-xl">No products available at the moment.</p>
                     </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-white">Arduino Starter Kit</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">Complete Electronics Bundle</p>
-                        <div class="flex items-center mb-2">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i>
+                <?php else: ?>
+                    <?php foreach ($products as $product): ?>
+                    <!-- Product Card -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/30 hover-lift group transform hover:scale-105 transition duration-300">
+                        <div class="relative overflow-hidden h-56 bg-gradient-to-br from-electric/10 to-tech/10 dark:from-electric/20 dark:to-tech/20">
+                            <?php if ($product['image_url']): ?>
+                            <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <?php else: ?>
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <i class="fas fa-image text-4xl"></i>
                             </div>
-                            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">(234)</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="text-lg font-bold text-gray-900 dark:text-white">$89.99</span>
+                            <?php endif; ?>
+                            
+                            <?php if ($product['stock'] < 5 && $product['stock'] > 0): ?>
+                            <div class="absolute top-4 right-4 bg-orange-500 text-white px-2 py-1 rounded text-sm font-semibold animate-pulse">
+                                Low Stock
                             </div>
-                            <button
-                                class="bg-electric text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-tech transition duration-300 add-to-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 3 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/30 hover-lift group transform hover:scale-105 transition duration-300"
-                    style="animation-delay: 0.2s;">
-                    <div
-                        class="relative overflow-hidden h-56 bg-gradient-to-br from-electric/10 to-tech/10 dark:from-electric/20 dark:to-tech/20">
-                        <img src="images/2.jpg" alt="Drone"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div
-                            class="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold animate-pulse">
-                            -30%
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-white">Pro Drone X5</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">4K Camera Drone</p>
-                        <div class="flex items-center mb-2">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
+                            <?php endif; ?>
+                            
+                            <?php if ($product['stock'] == 0): ?>
+                            <div class="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                Out of Stock
                             </div>
-                            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">(189)</span>
+                            <?php endif; ?>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="text-lg font-bold text-gray-900 dark:text-white">$699</span>
-                                <span class="text-gray-500 dark:text-gray-400 line-through text-sm ml-2">$999</span>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-white truncate">
+                                <a href="product-details.php?id=<?php echo $product['id']; ?>" class="hover:text-electric transition">
+                                    <?php echo htmlspecialchars($product['name']); ?>
+                                </a>
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">
+                                <?php echo htmlspecialchars($product['description']); ?>
+                            </p>
+                            <div class="flex items-center mb-2">
+                                <div class="flex text-yellow-400 text-sm">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="text-gray-500 dark:text-gray-400 text-xs ml-2">(New)</span>
                             </div>
-                            <button
-                                class="bg-electric text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-tech transition duration-300 add-to-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 4 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-black/30 hover-lift group transform hover:scale-105 transition duration-300"
-                    style="animation-delay: 0.3s;">
-                    <div
-                        class="relative overflow-hidden h-56 bg-gradient-to-br from-electric/10 to-tech/10 dark:from-electric/20 dark:to-tech/20">
-                        <img src="images/3.jpg" alt="AI Robot"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-white">Humanoid AI Robot</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">Advanced AI Companion</p>
-                        <div class="flex items-center mb-2">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-lg font-bold text-gray-900 dark:text-white">$<?php echo number_format($product['price'], 2); ?></span>
+                                </div>
+                                <?php if ($product['stock'] > 0): ?>
+                                <form action="cart.php" method="POST" class="inline">
+                                    <input type="hidden" name="action" value="add">
+                                    <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                    <button type="submit"
+                                        class="bg-electric text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-tech transition duration-300 add-to-cart">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                                <?php else: ?>
+                                <button disabled class="bg-gray-300 dark:bg-gray-700 text-gray-500 w-10 h-10 rounded-full flex items-center justify-center cursor-not-allowed">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                <?php endif; ?>
                             </div>
-                            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">(142)</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="text-lg font-bold text-gray-900 dark:text-white">$2,499</span>
-                            </div>
-                            <button
-                                class="bg-electric text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-tech transition duration-300 add-to-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
                         </div>
                     </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
 
-    <!-- New Arrivals -->
+    <!-- Latest Tech News (Blog) -->
     <section class="py-16 bg-white dark:bg-gray-900 transition duration-300">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-4 text-gray-800 dark:text-white animate-slide-in-left">New Tech
-                Arrivals</h2>
-            <p class="text-gray-600 dark:text-gray-400 text-center mb-10 max-w-2xl mx-auto animate-slide-up">Discover
-                our latest robotics, AI-powered systems, and cutting-edge electronic innovations!</p>
+            <h2 class="text-3xl font-bold text-center mb-4 text-gray-800 dark:text-white animate-slide-in-left">Latest Tech News</h2>
+            <p class="text-gray-600 dark:text-gray-400 text-center mb-10 max-w-2xl mx-auto animate-slide-up">Stay updated with the latest trends, tutorials, and insights in robotics and IoT.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- New Arrival 1 -->
-                <div
-                    class="relative rounded-xl overflow-hidden group border border-electric/30 transform hover:scale-105 transition duration-300">
-                    <div class="h-64 overflow-hidden bg-gradient-to-br from-electric/10 to-tech/10">
-                        <img src="images/4.jpg" alt="Autonomous Robot"
+                <?php
+                $recent_posts = get_recent_posts($pdo, 3);
+                foreach ($recent_posts as $post):
+                ?>
+                <div class="relative rounded-xl overflow-hidden group border border-electric/30 transform hover:scale-105 transition duration-300 bg-white dark:bg-gray-800 shadow-lg">
+                    <div class="h-56 overflow-hidden bg-gray-200">
+                         <?php if ($post['image_url']): ?>
+                        <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>"
                             class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        <?php else: ?>
+                        <div class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image text-4xl"></i></div>
+                        <?php endif; ?>
                     </div>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-6">
-                        <div>
-                            <h3 class="text-xl font-bold text-white mb-2">Autonomous Robot X7</h3>
-                            <p class="text-white/80 mb-4">Self-driving with AI navigation</p>
-                            <button
-                                class="bg-electric text-white px-4 py-2 rounded-lg font-semibold hover:bg-tech transition duration-300 transform hover:scale-105">
-                                Explore
-                            </button>
-                        </div>
-                    </div>
-                    <div class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                        NEW
+                    <div class="p-6">
+                        <div class="text-xs text-electric font-semibold mb-2"><?php echo date('M d, Y', strtotime($post['created_at'])); ?></div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2 line-clamp-2">
+                            <a href="blog-details.php?slug=<?php echo $post['slug']; ?>" class="hover:text-electric transition">
+                                <?php echo htmlspecialchars($post['title']); ?>
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2"><?php echo strip_tags($post['content']); ?></p>
+                        <a href="blog-details.php?slug=<?php echo $post['slug']; ?>"
+                            class="inline-block text-electric font-semibold hover:underline">
+                            Read Article &rarr;
+                        </a>
                     </div>
                 </div>
-
-                <!-- New Arrival 2 -->
-                <div class="relative rounded-xl overflow-hidden group border border-electric/30 transform hover:scale-105 transition duration-300"
-                    style="animation-delay: 0.1s;">
-                    <div class="h-64 overflow-hidden bg-gradient-to-br from-electric/10 to-tech/10">
-                        <img src="images/6.jpg" alt="Smart Sensor Kit"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                    </div>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-6">
-                        <div>
-                            <h3 class="text-xl font-bold text-white mb-2">IoT Smart Sensor Kit</h3>
-                            <p class="text-white/80 mb-4">Connected environmental monitoring</p>
-                            <button
-                                class="bg-electric text-white px-4 py-2 rounded-lg font-semibold hover:bg-tech transition duration-300 transform hover:scale-105">
-                                Explore
-                            </button>
-                        </div>
-                    </div>
-                    <div class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                        NEW
-                    </div>
-                </div>
-
-                <!-- New Arrival 3 -->
-                <div class="relative rounded-xl overflow-hidden group border border-electric/30 transform hover:scale-105 transition duration-300"
-                    style="animation-delay: 0.2s;">
-                    <div class="h-64 overflow-hidden bg-gradient-to-br from-electric/10 to-tech/10">
-                        <img src="images/7.jpg" alt="AI Vision System"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                    </div>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-6">
-                        <div>
-                            <h3 class="text-xl font-bold text-white mb-2">AI Vision Processing</h3>
-                            <p class="text-white/80 mb-4">Real-time image recognition</p>
-                            <button
-                                class="bg-electric text-white px-4 py-2 rounded-lg font-semibold hover:bg-tech transition duration-300 transform hover:scale-105">
-                                Explore
-                            </button>
-                        </div>
-                    </div>
-                    <div class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                        NEW
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
@@ -684,7 +337,7 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
                             <span class="block text-xs">Mins</span>
                         </div>
                     </div>
-                    <a href="products.html"
+                    <a href="products.php"
                         class="bg-white text-electric px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105">
                         Shop Now
                     </a>
@@ -868,280 +521,4 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 dark:bg-gray-900 text-white pt-12 pb-6">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <!-- Company Info -->
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <div
-                            class="w-8 h-8 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
-                            <i class="fas fa-bolt text-white"></i>
-                        </div>
-                        <span class="text-xl font-bold">RoboMart</span>
-                    </div>
-                    <p class="text-gray-400 dark:text-gray-500 mb-4">Leading supplier of robotics kits, electronics
-                        components, IoT devices, and AI solutions. Quality engineering with expert technical support.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Shop Categories</h3>
-                    <ul class="space-y-2">
-                        <li><a href="products.html"
-                                class="text-gray-400 hover:text-white transition duration-300">Robotics Kits</a>
-                        </li>
-                        <li><a href="products.html"
-                                class="text-gray-400 hover:text-white transition duration-300">Microcontrollers</a></li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">IoT
-                                Devices</a>
-                        </li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">AI
-                                Modules</a>
-                        </li>
-                        <li><a href="products.html"
-                                class="text-gray-400 hover:text-white transition duration-300">Electronics
-                                Components</a></li>
-                    </ul>
-                </div>
-
-                <!-- Customer Service -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Customer Service</h3>
-                    <ul class="space-y-2">
-                        <li><a href="contact.html"
-                                class="text-gray-400 hover:text-white transition duration-300">Contact Us</a>
-                        </li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Shipping
-                                Policy</a></li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Return
-                                Policy</a>
-                        </li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">FAQ</a>
-                        </li>
-                        <li><a href="orders.html" class="text-gray-400 hover:text-white transition duration-300">Track
-                                Your
-                                Order</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact Info -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
-                    <ul class="space-y-2">
-                        <li class="flex items-start">
-                            <i class="fas fa-map-marker-alt text-gray-400 mt-1 mr-3"></i>
-                            <span class="text-gray-400">DUET Gazipur-1707</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-phone text-gray-400 mr-3"></i>
-                            <span class="text-gray-400">+880185512502</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-envelope text-gray-400 mr-3"></i>
-                            <span class="text-gray-400">support@robomart.com</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-400 text-sm mb-4 md:mb-0">&copy; 2025 RoboMart. All rights reserved.</p>
-                <div class="flex space-x-6">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/visa.svg"
-                        class="h-8 brightness-0 invert" alt="Visa">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/mastercard.svg"
-                        class="h-8 brightness-0 invert" alt="Mastercard">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/paypal.svg"
-                        class="h-8 brightness-0 invert" alt="PayPal">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/applepay.svg"
-                        class="h-8 brightness-0 invert" alt="Apple Pay">
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // JavaScript for interactive elements
-        document.addEventListener('DOMContentLoaded', function () {
-
-            // ===== CAROUSEL FUNCTIONALITY =====
-            let currentSlide = 0;
-            const slides = document.querySelectorAll('.carousel-slide');
-            const indicators = document.querySelectorAll('.indicator');
-            const totalSlides = slides.length;
-            let autoplayInterval;
-
-            function showSlide(index) {
-                // Hide all slides
-                slides.forEach(slide => slide.style.opacity = '0');
-
-                // Update indicators
-                indicators.forEach((indicator, i) => {
-                    if (i === index) {
-                        indicator.classList.add('active');
-                    } else {
-                        indicator.classList.remove('active');
-                    }
-                });
-
-                // Show current slide
-                slides[index].style.opacity = '1';
-                currentSlide = index;
-            }
-
-            function nextSlide() {
-                currentSlide = (currentSlide + 1) % totalSlides;
-                showSlide(currentSlide);
-            }
-
-            function prevSlide() {
-                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-                showSlide(currentSlide);
-            }
-
-            function startAutoplay() {
-                autoplayInterval = setInterval(nextSlide, 4000); // Change slide every 4 seconds
-            }
-
-            function resetAutoplay() {
-                clearInterval(autoplayInterval);
-                startAutoplay();
-            }
-
-            // Indicator buttons - Click to navigate
-            indicators.forEach(indicator => {
-                indicator.addEventListener('click', function () {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    showSlide(index);
-                    resetAutoplay();
-                });
-            });
-
-            // Initialize first slide and start autoplay
-            showSlide(0);
-            startAutoplay();
-
-            // ===== ADD TO CART BUTTONS =====
-            const addToCartButtons = document.querySelectorAll('.add-to-cart');
-            const cartCount = document.querySelector('.bg-accent');
-            let count = 3;
-
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    count++;
-                    cartCount.textContent = count;
-
-                    // Animation effect
-                    const originalHTML = button.innerHTML;
-                    button.innerHTML = '<i class="fas fa-check"></i>';
-                    button.classList.remove('bg-electric');
-                    button.classList.add('bg-green-500');
-
-                    setTimeout(() => {
-                        button.innerHTML = originalHTML;
-                        button.classList.remove('bg-green-500');
-                        button.classList.add('bg-electric');
-                    }, 1500);
-                });
-            });
-
-            // ===== SEARCH FUNCTIONALITY =====
-            const searchInput = document.querySelector('input[type="text"]');
-            const searchButton = document.querySelector('.fa-search').parentElement;
-
-            searchButton.addEventListener('click', function () {
-                if (searchInput.value.trim() !== '') {
-                    alert(`Searching for: ${searchInput.value}`);
-                } else {
-                    alert('Please enter a search term');
-                }
-            });
-
-            searchInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    if (searchInput.value.trim() !== '') {
-                        alert(`Searching for: ${searchInput.value}`);
-                    } else {
-                        alert('Please enter a search term');
-                    }
-                }
-            });
-
-            // ===== COUNTDOWN TIMER FOR FLASH SALE =====
-            function updateCountdown() {
-                const countdownDate = new Date();
-                countdownDate.setDate(countdownDate.getDate() + 2); // 2 days from now
-
-                const now = new Date().getTime();
-                const distance = countdownDate - now;
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
-                document.getElementById('days').textContent = days.toString().padStart(2, '0');
-                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            }
-
-            // Update countdown every minute
-            updateCountdown();
-            setInterval(updateCountdown, 60000);
-
-            // ===== NEWSLETTER SUBSCRIPTION =====
-            const newsletterButton = document.querySelector('.bg-accent');
-            newsletterButton.addEventListener('click', function () {
-                const emailInput = document.querySelector('input[type="email"]');
-                if (emailInput.value.trim() !== '' && emailInput.value.includes('@')) {
-                    alert('Thank you for subscribing to our newsletter!');
-                    emailInput.value = '';
-                } else {
-                    alert('Please enter a valid email address');
-                }
-            });
-
-            // ===== DARK MODE TOGGLE =====
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            const htmlElement = document.documentElement;
-
-            // Check for saved dark mode preference or default to system preference
-            const isDarkMode = localStorage.getItem('darkMode') === 'true' ||
-                (window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'false');
-
-            // Set initial state
-            if (isDarkMode) {
-                htmlElement.classList.add('dark');
-                darkModeToggle.checked = true;
-            }
-
-            // Toggle dark mode
-            darkModeToggle.addEventListener('change', function () {
-                if (this.checked) {
-                    htmlElement.classList.add('dark');
-                    localStorage.setItem('darkMode', 'true');
-                } else {
-                    htmlElement.classList.remove('dark');
-                    localStorage.setItem('darkMode', 'false');
-                }
-            });
-        });
-    </script>
-</body>
-
-</html>
+    <?php include 'includes/footer.php'; ?>

@@ -43,4 +43,4 @@ try {
 
 // Include utility functions
 require_once __DIR__ . '/functions.php';
-?>
+

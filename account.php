@@ -17,125 +17,16 @@ if (!$user) {
     destroy_session();
     redirect('login.php');
 }
+
+// Redirect admin to dashboard
+if ($user['role'] === 'admin') {
+    redirect('backend/index.php');
+}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Account - RoboMart</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#1e40af',
-                        accent: '#f59e0b',
-                        electric: '#06b6d4',
-                        tech: '#8b5cf6',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition duration-300">
-    <style>
-        .dark-mode-toggle { position: relative; display: inline-block; width: 60px; height: 30px; }
-        .dark-mode-toggle input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.4s; border-radius: 30px; }
-        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: 0.4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #06b6d4; }
-        input:checked + .slider:before { transform: translateX(30px); }
-    </style>
-
-    <!-- Header (standardized from index.html) -->
-    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-lg transition duration-300">
-        <div class="container mx-auto px-4">
-            <!-- Top Bar -->
-            <div class="flex items-center justify-between py-4">
-                <!-- Logo -->
-                <a href="index.php" class="flex items-center space-x-2">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
-                        <i class="fas fa-bolt text-white text-lg"></i>
-                    </div>
-                    <span class="text-xl font-bold text-gray-800 dark:text-white">RoboMart</span>
-                </a>
-
-                <!-- Search Bar -->
-                <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-                    <div class="relative w-full">
-                        <input type="text" placeholder="Search robotics, electronics, IoT devices..." 
-                               class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-electric focus:border-transparent dark:placeholder-gray-400">
-                        <button class="absolute right-0 top-0 h-full px-4 text-gray-500 dark:text-gray-400 hover:text-electric dark:hover:text-electric">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- User Actions -->
-                <div class="flex items-center space-x-6">
-                    <!-- Dark Mode Toggle -->
-                    <label class="dark-mode-toggle">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                    
-                    <div class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
-                        <i class="far fa-user text-lg"></i>
-                        <span class="font-medium"><a href="account.php">Account</a></span>
-                    </div>
-                    <div class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
-                        <i class="far fa-heart text-lg"></i>
-                        <span class="font-medium">Wishlist</span>
-                    </div>
-                    <div class="flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer relative dark:text-gray-300 dark:hover:text-electric">
-                        <i class="fas fa-shopping-cart text-lg"></i>
-                        <span class="font-medium">Cart</span>
-                        <span class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                    </div>
-                    <button id="mobileMenuButton" class="md:hidden text-gray-700 dark:text-gray-300" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle menu">
-                        <i class="fas fa-bars text-xl" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Navigation -->
-                <nav class="hidden md:flex py-3 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex space-x-8">
-                    <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Home</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Robotics</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Microcontrollers</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">IoT Devices</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">AI & ML</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Components</a>
-                    <a href="products.html" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Kits & Tools</a>
-                    <a href="products.html" class="text-electric dark:text-electric font-medium">Flash Sale</a>
-                </div>
-            </nav>
-            <!-- Mobile Menu (hidden by default) -->
-            <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-                <div class="px-4 pt-4 pb-6 space-y-4">
-                    <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Robotics</a>
-                    <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Microcontrollers</a>
-                    <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">IoT Devices</a>
-                    <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">AI & ML</a>
-                    <a href="products.html" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Components</a>
-                    <a href="products.html" class="block text-electric dark:text-electric font-medium">Flash Sale</a>
-                    <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
-                        <a href="account.php" class="block text-gray-700 dark:text-gray-300 py-2">Account</a>
-                        <a href="cart.html" class="block text-gray-700 dark:text-gray-300 py-2">Cart</a>
-                        <a href="logout.php" class="block text-red-600 dark:text-red-400 py-2">Sign Out</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+<?php
+$page_title = "Account";
+include 'includes/header.php';
+?>
 
     <main class="container mx-auto px-4 py-12">
         <h1 class="text-3xl font-bold mb-4">Account Dashboard</h1>
@@ -166,12 +57,12 @@ if (!$user) {
             <section class="md:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
                 <h2 class="font-semibold mb-4 text-xl">Quick Actions</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a href="orders.html" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
+                    <a href="orders.php" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
                         <i class="fas fa-box text-electric text-2xl mb-2"></i>
                         <h3 class="font-semibold">My Orders</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Track and manage your orders</p>
                     </a>
-                    <a href="cart.html" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
+                    <a href="cart.php" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
                         <i class="fas fa-shopping-cart text-electric text-2xl mb-2"></i>
                         <h3 class="font-semibold">Shopping Cart</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">View items in your cart</p>
@@ -181,79 +72,14 @@ if (!$user) {
                         <h3 class="font-semibold">Wishlist</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Manage your favorite items</p>
                     </a>
-                    <a href="#" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
-                        <i class="fas fa-cog text-electric text-2xl mb-2"></i>
-                        <h3 class="font-semibold">Settings</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Update your account settings</p>
+                    <a href="account-edit.php" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
+                        <i class="fas fa-user-edit text-electric text-2xl mb-2"></i>
+                        <h3 class="font-semibold">Edit Profile</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Update your account details</p>
                     </a>
                 </div>
             </section>
         </div>
     </main>
 
-    <footer class="bg-gray-800 dark:bg-gray-900 text-white pt-12 pb-6">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-electric to-tech flex items-center justify-center">
-                            <i class="fas fa-bolt text-white"></i>
-                        </div>
-                        <a href="index.php" class="text-xl font-bold">RoboMart</a>
-                    </div>
-                    <p class="text-gray-400 dark:text-gray-500 mb-4">Leading supplier of robotics kits, electronics components, IoT devices, and AI solutions.</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Shop Categories</h3>
-                    <ul class="space-y-2">
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">Robotics Kits</a></li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">Microcontrollers</a></li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">IoT Devices</a></li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">AI Modules</a></li>
-                        <li><a href="products.html" class="text-gray-400 hover:text-white transition duration-300">Electronics Components</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Customer Service</h3>
-                    <ul class="space-y-2">
-                        <li><a href="contact.html" class="text-gray-400 hover:text-white transition duration-300">Contact Us</a></li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Shipping Policy</a></li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Return Policy</a></li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">FAQ</a></li>
-                        <li><a href="orders.html" class="text-gray-400 hover:text-white transition duration-300">Track Your Order</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
-                    <ul class="space-y-2">
-                        <li class="flex items-start"><i class="fas fa-map-marker-alt text-gray-400 mt-1 mr-3"></i><span class="text-gray-400">DUET Gazipur-1707</span></li>
-                        <li class="flex items-center"><i class="fas fa-phone text-gray-400 mr-3"></i><span class="text-gray-400">+880185512502</span></li>
-                        <li class="flex items-center"><i class="fas fa-envelope text-gray-400 mr-3"></i><span class="text-gray-400">support@robomart.com</span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-400 text-sm mb-4 md:mb-0">&copy; 2025 RoboMart. All rights reserved.</p>
-                <div class="flex space-x-6">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/visa.svg" class="h-8 brightness-0 invert" alt="Visa">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/mastercard.svg" class="h-8 brightness-0 invert" alt="Mastercard">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/paypal.svg" class="h-8 brightness-0 invert" alt="PayPal">
-                    <img src="https://cdn.jsdelivr.net/gh/Simple-Icons/simple-icons@develop/icons/applepay.svg" class="h-8 brightness-0 invert" alt="Apple Pay">
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
-</body>
-</html>
+    <?php include 'includes/footer.php'; ?>
