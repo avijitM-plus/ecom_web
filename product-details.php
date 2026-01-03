@@ -16,7 +16,7 @@ $product = get_product_by_id($pdo, $product_id);
 $review_error = '';
 $review_success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
-    if (!$is_logged_in) {
+    if (!is_logged_in()) {
         $review_error = 'You must be logged in to review.';
     } else {
         $rating = (int)$_POST['rating'];
