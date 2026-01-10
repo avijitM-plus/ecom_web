@@ -31,17 +31,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = sanitize_input($_POST['name'] ?? '');
     $description = sanitize_input($_POST['description'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $discount_percent = floatval($_POST['discount_percent'] ?? 0);
     $stock = intval($_POST['stock'] ?? 0);
     $image_url = sanitize_input($_POST['image_url'] ?? '');
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     
+    // Handle image upload
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = '../../uploads/products/';
+        
+        // Create directory if not exists
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $file = $_FILES['image_file'];
+        $file_ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        if (!in_array($file_ext, $allowed_exts)) {
+            $error = 'Invalid image format. Allowed: JPG, PNG, GIF, WEBP';
+        } elseif ($file['size'] > 5 * 1024 * 1024) { // 5MB max
+            $error = 'Image file too large. Maximum size: 5MB';
+        } else {
+            // Generate unique filename
+            $new_filename = 'product_' . $id . '_' . time() . '.' . $file_ext;
+            $upload_path = $upload_dir . $new_filename;
+            
+            if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+                // Set image URL to the uploaded file
+                $image_url = 'uploads/products/' . $new_filename;
+            } else {
+                $error = 'Failed to upload image. Please try again.';
+            }
+        }
+    }
+    
     // Validation
-    if (empty($name) || $price <= 0) {
+    if (empty($error) && (empty($name) || $price <= 0)) {
         $error = 'Product name and valid price are required.';
-    } else {
+    } elseif (empty($error) && ($discount_percent < 0 || $discount_percent > 100)) {
+        $error = 'Discount must be between 0 and 100%.';
+    } elseif (empty($error)) {
         // Update product
-        $result = update_product($pdo, $id, $name, $description, $price, $stock, $image_url, $is_active, '', $is_featured);
+        $result = update_product($pdo, $id, $name, $description, $price, $stock, $image_url, $is_active, '', $is_featured, $discount_percent);
         if ($result['success']) {
             $success = $result['message'];
             // Refresh product data
@@ -88,7 +122,7 @@ include '../includes/sidebar.php';
 <div class="row">
     <div class="col-lg-8">
         <div class="table-container p-4">
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <div class="row g-4">
                     <!-- Product Name -->
                     <div class="col-12">
@@ -106,31 +140,70 @@ include '../includes/sidebar.php';
                     </div>
                     
                     <!-- Price -->
-                    <div class="col-md-6">
-                        <label class="form-label">Price ($) <span class="text-danger">*</span></label>
+                    <div class="col-md-4">
+                        <label class="form-label">Price (৳) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-light">$</span>
+                            <span class="input-group-text bg-dark border-secondary text-light">৳</span>
                             <input type="number" name="price" class="form-control" 
                                    step="0.01" min="0" placeholder="0.00" required
                                    value="<?php echo htmlspecialchars($product['price']); ?>">
                         </div>
                     </div>
                     
+                    <!-- Discount -->
+                    <div class="col-md-4">
+                        <label class="form-label">Discount (%)</label>
+                        <div class="input-group">
+                            <input type="number" name="discount_percent" class="form-control" 
+                                   step="0.01" min="0" max="100" placeholder="0"
+                                   value="<?php echo htmlspecialchars($product['discount_percent'] ?? 0); ?>">
+                            <span class="input-group-text bg-dark border-secondary text-light">%</span>
+                        </div>
+                        <small class="text-muted">0-100%. Final price: ৳<span id="finalPrice"><?php 
+                            $discount = $product['discount_percent'] ?? 0;
+                            echo number_format(get_discounted_price($product['price'], $discount), 2); 
+                        ?></span></small>
+                    </div>
+                    
                     <!-- Stock -->
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">Stock Quantity</label>
                         <input type="number" name="stock" class="form-control" 
                                min="0" placeholder="0"
                                value="<?php echo htmlspecialchars($product['stock']); ?>">
                     </div>
                     
-                    <!-- Image URL -->
+                    <!-- Image Upload -->
                     <div class="col-12">
-                        <label class="form-label">Image URL</label>
-                        <input type="url" name="image_url" class="form-control" 
-                               placeholder="https://example.com/image.jpg"
-                               value="<?php echo htmlspecialchars($product['image_url']); ?>">
-                        <small class="text-muted">Enter a direct link to a product image</small>
+                        <label class="form-label">Product Image</label>
+                        
+                        <!-- Current Image Preview -->
+                        <?php if ($product['image_url']): ?>
+                        <div class="mb-3">
+                            <img src="../../<?php echo htmlspecialchars($product['image_url']); ?>" 
+                                 alt="Current Image" class="img-thumbnail" style="max-height: 100px;">
+                            <small class="d-block text-muted">Current image</small>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <!-- Upload File -->
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Upload New Image</label>
+                            <input type="file" name="image_file" class="form-control" 
+                                   accept="image/jpeg,image/png,image/gif,image/webp">
+                            <small class="text-muted">Max 5MB. Formats: JPG, PNG, GIF, WEBP</small>
+                        </div>
+                        
+                        <div class="text-center text-muted my-2">- OR -</div>
+                        
+                        <!-- Image URL -->
+                        <div>
+                            <label class="form-label small text-muted">Image URL</label>
+                            <input type="url" name="image_url" class="form-control" 
+                                   placeholder="https://example.com/image.jpg"
+                                   value="<?php echo htmlspecialchars($product['image_url']); ?>">
+                            <small class="text-muted">Or enter a direct link to an image</small>
+                        </div>
                     </div>
                     
                     <!-- Status -->
@@ -175,7 +248,7 @@ include '../includes/sidebar.php';
                 <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                    <p class="card-text text-primary fw-bold">$<?php echo number_format($product['price'], 2); ?></p>
+                    <p class="card-text text-primary fw-bold">৳<?php echo number_format($product['price'], 2); ?></p>
                     <p class="card-text small text-muted">
                         <?php echo $product['stock'] > 0 ? 'In Stock (' . $product['stock'] . ')' : 'Out of Stock'; ?>
                     </p>

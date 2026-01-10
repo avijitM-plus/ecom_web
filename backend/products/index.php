@@ -201,7 +201,7 @@ include '../includes/sidebar.php';
                             </div>
                         </div>
                     </td>
-                    <td>$<?php echo number_format($product['price'], 2); ?></td>
+                    <td>৳<?php echo number_format($product['price'], 2); ?></td>
                     <td>
                         <?php if ($product['stock'] <= 5): ?>
                             <span class="text-danger fw-bold"><?php echo $product['stock']; ?></span>

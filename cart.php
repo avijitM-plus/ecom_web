@@ -46,15 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $cart_details = get_cart_details($pdo);
 $cart_items = $cart_details['items'];
 $subtotal = $cart_details['subtotal'];
-$discount = 0;
+$product_savings = $cart_details['savings'];
+$coupon_discount = 0;
 $total = $subtotal;
 
 // Calculate totals with coupon
 if (isset($_SESSION['coupon'])) {
     $val = validate_coupon($_SESSION['coupon'], $subtotal);
     if ($val['valid']) {
-        $discount = $val['discount'];
-        $total = $subtotal - $discount;
+        $coupon_discount = $val['discount'];
+        $total = $subtotal - $coupon_discount;
     } else {
         unset($_SESSION['coupon']); // Remove invalid coupon
     }
@@ -82,7 +83,9 @@ include 'includes/header.php';
         <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-2">
-                    <?php foreach ($cart_items as $item): ?>
+                    <?php foreach ($cart_items as $item): 
+                        $item_discount = isset($item['discount_percent']) ? floatval($item['discount_percent']) : 0;
+                    ?>
                     <!-- Cart item -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 flex items-center gap-4 shadow-sm">
                         <?php if ($item['image_url']): ?>
@@ -96,7 +99,19 @@ include 'includes/header.php';
                                 <a href="product-details.php?id=<?php echo $item['id']; ?>" class="hover:underline">
                                     <?php echo htmlspecialchars($item['name']); ?>
                                 </a>
+                                <?php if ($item_discount > 0): ?>
+                                    <span class="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded">-<?php echo number_format($item_discount, 0); ?>%</span>
+                                <?php endif; ?>
                             </h3>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                <?php if ($item_discount > 0): ?>
+                                    <span class="line-through">৳<?php echo number_format($item['price'], 2); ?></span>
+                                    <span class="text-red-500 font-semibold ml-1">৳<?php echo number_format($item['final_price'], 2); ?></span>
+                                <?php else: ?>
+                                    ৳<?php echo number_format($item['price'], 2); ?>
+                                <?php endif; ?>
+                                × <?php echo $item['quantity']; ?>
+                            </div>
                             <form action="cart.php" method="POST" class="mt-2">
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
@@ -109,7 +124,10 @@ include 'includes/header.php';
                             </form>
                         </div>
                         <div class="text-right">
-                            <div class="text-lg font-bold text-gray-900 dark:text-white">$<?php echo number_format($item['line_total'], 2); ?></div>
+                            <div class="text-lg font-bold text-gray-900 dark:text-white">৳<?php echo number_format($item['line_total'], 2); ?></div>
+                            <?php if ($item_discount > 0 && $item['original_line_total'] > $item['line_total']): ?>
+                                <div class="text-xs text-green-500">Save ৳<?php echo number_format($item['original_line_total'] - $item['line_total'], 2); ?></div>
+                            <?php endif; ?>
                             <form action="cart.php" method="POST" class="inline">
                                 <input type="hidden" name="action" value="remove">
                                 <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
@@ -133,20 +151,40 @@ include 'includes/header.php';
 
                     <div class="flex justify-between mb-2">
                         <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
-                        <span class="font-bold text-gray-900 dark:text-white">$<?php echo number_format($subtotal, 2); ?></span>
+                        <span class="font-bold text-gray-900 dark:text-white">৳<?php echo number_format($subtotal, 2); ?></span>
                     </div>
                     
-                    <?php if ($discount > 0): ?>
+                    <?php if ($product_savings > 0): ?>
                     <div class="flex justify-between mb-2 text-green-600">
-                        <span>Discount (<?php echo $_SESSION['coupon']['code']; ?>)</span>
-                        <span>-$<?php echo number_format($discount, 2); ?></span>
+                        <span>Product Discounts</span>
+                        <span>-৳<?php echo number_format($product_savings, 2); ?></span>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($coupon_discount > 0): ?>
+                    <div class="flex justify-between mb-2 text-green-600">
+                        <span>Coupon (<?php echo $_SESSION['coupon']['code']; ?>)</span>
+                        <span>-৳<?php echo number_format($coupon_discount, 2); ?></span>
                     </div>
                     <?php endif; ?>
 
                     <div class="flex justify-between mb-4">
                         <span class="text-gray-600 dark:text-gray-400">Shipping</span>
-                        <span class="font-bold text-green-500">Free</span>
+                        <?php 
+                        $free_shipping_threshold = 2000;
+                        if ($subtotal >= $free_shipping_threshold): 
+                        ?>
+                            <span class="font-bold text-green-500">Free</span>
+                        <?php else: ?>
+                            <span class="font-bold text-gray-600 dark:text-gray-400">Calculated at checkout</span>
+                        <?php endif; ?>
                     </div>
+                    <?php if ($subtotal < $free_shipping_threshold): ?>
+                    <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm p-3 rounded-lg mb-4">
+                        <i class="fas fa-truck mr-2"></i>
+                        Add ৳<?php echo number_format($free_shipping_threshold - $subtotal, 2); ?> more for <strong>FREE shipping!</strong>
+                    </div>
+                    <?php endif; ?>
                     
                     <!-- Coupon Input -->
                     <?php if (!isset($_SESSION['coupon'])): ?>
@@ -167,7 +205,7 @@ include 'includes/header.php';
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-700 mb-6">
                         <div class="flex justify-between">
                             <span class="font-bold text-lg text-gray-900 dark:text-white">Total</span>
-                            <span class="font-bold text-lg text-electric">$<?php echo number_format($total, 2); ?></span>
+                            <span class="font-bold text-lg text-electric">৳<?php echo number_format($total, 2); ?></span>
                         </div>
                     </div>
                     <a href="checkout.php" class="block text-center bg-electric text-white py-3 rounded-lg hover:bg-tech transition font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">

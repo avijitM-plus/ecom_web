@@ -47,7 +47,7 @@ include 'includes/header.php';
                             <p class="text-sm text-gray-500">Placed on: <?php echo date('F j, Y, g:i a', strtotime($order['created_at'])); ?></p>
                         </div>
                         <div class="text-right mt-2 md:mt-0">
-                            <span class="block font-bold text-lg">$<?php echo number_format($order['total_amount'], 2); ?></span>
+                            <span class="block font-bold text-lg">৳<?php echo number_format($order['total_amount'], 2); ?></span>
                             <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold 
                                 <?php 
                                     echo match($order['status']) {
@@ -77,7 +77,7 @@ include 'includes/header.php';
                             <?php foreach ($items as $item): ?>
                                 <div class="flex justify-between text-sm">
                                     <span><?php echo htmlspecialchars($item['name']); ?> x <?php echo $item['quantity']; ?></span>
-                                    <span>$<?php echo number_format($item['price'], 2); ?></span>
+                                    <span>৳<?php echo number_format($item['price'], 2); ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>

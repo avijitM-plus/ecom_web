@@ -52,7 +52,7 @@ include 'includes/header.php';
                             </a>
                         </h3>
                         <div class="flex justify-between items-center mt-3">
-                            <span class="text-lg font-bold text-gray-900 dark:text-white">$<?php echo number_format($product['price'], 2); ?></span>
+                            <span class="text-lg font-bold text-gray-900 dark:text-white">৳<?php echo number_format($product['price'], 2); ?></span>
                             <?php if ($product['stock'] > 0): ?>
                                 <form action="cart.php" method="POST" class="inline">
                                     <input type="hidden" name="action" value="add">

@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = sanitize_input($_POST['name'] ?? '');
     $description = sanitize_input($_POST['description'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $discount_percent = floatval($_POST['discount_percent'] ?? 0);
     $stock = intval($_POST['stock'] ?? 0);
     $image_url = sanitize_input($_POST['image_url'] ?? '');
     $is_active = isset($_POST['is_active']) ? 1 : 0;
@@ -35,15 +36,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $category_str = implode(', ', $selected_names); // Legacy support
 
+    // Handle image upload (store temporarily, we'll rename after getting product ID)
+    $uploaded_temp_file = null;
+    $uploaded_ext = null;
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = '../../uploads/products/';
+        
+        // Create directory if not exists
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $file = $_FILES['image_file'];
+        $file_ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        if (!in_array($file_ext, $allowed_exts)) {
+            $error = 'Invalid image format. Allowed: JPG, PNG, GIF, WEBP';
+        } elseif ($file['size'] > 5 * 1024 * 1024) { // 5MB max
+            $error = 'Image file too large. Maximum size: 5MB';
+        } else {
+            $uploaded_temp_file = $file['tmp_name'];
+            $uploaded_ext = $file_ext;
+        }
+    }
+
     // Validation
-    if (empty($name) || $price <= 0) {
+    if (empty($error) && (empty($name) || $price <= 0)) {
         $error = 'Product name and valid price are required.';
-    } else {
-        // Create product
-        $result = create_product($pdo, $name, $description, $price, $stock, $image_url, $is_active, $category_str, $is_featured);
+    } elseif (empty($error) && ($discount_percent < 0 || $discount_percent > 100)) {
+        $error = 'Discount must be between 0 and 100%.';
+    } elseif (empty($error)) {
+        // Create product first
+        $result = create_product($pdo, $name, $description, $price, $stock, $image_url, $is_active, $category_str, $is_featured, $discount_percent);
         
         if ($result['success']) {
             $product_id = $result['id'];
+            
+            // Now handle image upload with proper product ID
+            if ($uploaded_temp_file && $uploaded_ext) {
+                $upload_dir = '../../uploads/products/';
+                $new_filename = 'product_' . $product_id . '_' . time() . '.' . $uploaded_ext;
+                $upload_path = $upload_dir . $new_filename;
+                
+                if (move_uploaded_file($uploaded_temp_file, $upload_path)) {
+                    // Update product with image URL
+                    $image_url = 'uploads/products/' . $new_filename;
+                    $pdo->prepare("UPDATE products SET image_url = ? WHERE id = ?")->execute([$image_url, $product_id]);
+                }
+            }
             
             // Link Categories in Pivot
             if (!empty($selected_ids)) {
@@ -94,7 +135,7 @@ include '../includes/sidebar.php';
 <div class="row">
     <div class="col-lg-8">
         <div class="table-container p-4">
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <div class="row g-4">
                     <!-- Product Name -->
                     <div class="col-12">
@@ -141,9 +182,9 @@ include '../includes/sidebar.php';
 
                     <!-- Price -->
                     <div class="col-md-6">
-                        <label class="form-label">Price ($) <span class="text-danger">*</span></label>
+                        <label class="form-label">Price (৳) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-light">$</span>
+                            <span class="input-group-text bg-dark border-secondary text-light">৳</span>
                             <input type="number" name="price" class="form-control" 
                                    step="0.01" min="0" placeholder="0.00" required
                                    value="<?php echo htmlspecialchars($_POST['price'] ?? ''); ?>">
@@ -158,12 +199,28 @@ include '../includes/sidebar.php';
                                value="<?php echo htmlspecialchars($_POST['stock'] ?? '0'); ?>">
                     </div>
                     
-                    <!-- Image URL -->
+                    <!-- Image Upload -->
                     <div class="col-12">
-                        <label class="form-label">Image URL</label>
-                        <input type="url" name="image_url" class="form-control" 
-                               placeholder="https://example.com/image.jpg"
-                               value="<?php echo htmlspecialchars($_POST['image_url'] ?? ''); ?>">
+                        <label class="form-label">Product Image</label>
+                        
+                        <!-- Upload File -->
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Upload Image</label>
+                            <input type="file" name="image_file" class="form-control" 
+                                   accept="image/jpeg,image/png,image/gif,image/webp">
+                            <small class="text-muted">Max 5MB. Formats: JPG, PNG, GIF, WEBP</small>
+                        </div>
+                        
+                        <div class="text-center text-muted my-2">- OR -</div>
+                        
+                        <!-- Image URL -->
+                        <div>
+                            <label class="form-label small text-muted">Image URL</label>
+                            <input type="url" name="image_url" class="form-control" 
+                                   placeholder="https://example.com/image.jpg"
+                                   value="<?php echo htmlspecialchars($_POST['image_url'] ?? ''); ?>">
+                            <small class="text-muted">Or enter a direct link to an image</small>
+                        </div>
                     </div>
                     
                     <!-- Options -->

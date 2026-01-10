@@ -50,6 +50,11 @@
             <i class="bi bi-tags"></i>
             Categories
         </a>
+        
+        <a href="<?php echo SITE_URL; ?>/backend/navigation/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'navigation') !== false ? 'active' : ''; ?>">
+            <i class="bi bi-menu-button-wide"></i>
+            Navigation
+        </a>
         <?php endif; ?>
 
         <?php if (check_permission('admin') || check_permission('sales_manager')): ?>
@@ -77,6 +82,12 @@
            href="<?php echo SITE_URL; ?>/backend/blog/index.php">
             <i class="bi bi-journal-text"></i>
             Blog Management
+        </a>
+        
+        <a class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], '/newsletter/') !== false ? 'active' : ''; ?>" 
+           href="<?php echo SITE_URL; ?>/backend/newsletter/index.php">
+            <i class="bi bi-envelope-paper"></i>
+            Newsletter
         </a>
         <?php endif; ?>
         

@@ -145,7 +145,7 @@ include '../includes/sidebar.php';
                                         echo $rate['max_weight'] ? $rate['max_weight'] . 'kg' : 'Up';
                                         ?>
                                     </td>
-                                    <td>$<?php echo number_format($rate['cost'], 2); ?></td>
+                                    <td>৳<?php echo number_format($rate['cost'], 2); ?></td>
                                     <td class="text-end">
                                         <a href="?delete_rate=<?php echo $rate['id']; ?>" class="text-danger">
                                             <i class="bi bi-x"></i>

@@ -89,9 +89,9 @@ include '../includes/sidebar.php';
                 <tr>
                     <td><span class="badge bg-light text-dark font-monospace border"><?php echo htmlspecialchars($c['code']); ?></span></td>
                     <td>
-                        <?php echo $c['type'] === 'percent' ? $c['value'] . '%' : '$' . number_format($c['value'], 2); ?>
+                        <?php echo $c['type'] === 'percent' ? $c['value'] . '%' : '৳' . number_format($c['value'], 2); ?>
                     </td>
-                    <td>$<?php echo number_format($c['min_spend'], 2); ?></td>
+                    <td>৳<?php echo number_format($c['min_spend'], 2); ?></td>
                     <td>
                         <?php echo $c['used_count']; ?> 
                         <?php if ($c['usage_limit'] > 0) echo '/ ' . $c['usage_limit']; ?>
@@ -151,7 +151,7 @@ include '../includes/sidebar.php';
                             <label class="form-label">Type</label>
                             <select name="type" class="form-select">
                                 <option value="percent">Percentage (%)</option>
-                                <option value="fixed">Fixed Amount ($)</option>
+                                <option value="fixed">Fixed Amount (৳)</option>
                             </select>
                         </div>
                         <div class="col-6 mb-3">
@@ -161,7 +161,7 @@ include '../includes/sidebar.php';
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Minimum Spend ($)</label>
+                        <label class="form-label">Minimum Spend (৳)</label>
                         <input type="number" name="min_spend" class="form-control" value="0" step="0.01" min="0">
                     </div>
                     

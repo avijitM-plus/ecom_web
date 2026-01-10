@@ -27,14 +27,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $stmt = $pdo->prepare("UPDATE returns SET status = ?, admin_notes = ? WHERE id = ?");
     if ($stmt->execute([$status, $notes, $return_id])) {
+        // Get return details for order cancellation
+        $stmt = $pdo->prepare("SELECT order_id, product_id FROM returns WHERE id = ?");
+        $stmt->execute([$return_id]);
+        $return_data = $stmt->fetch();
+        
+        // If approved or refunded, cancel the associated order
+        if ($status === 'approved' || $status === 'refunded') {
+            $order_id = $return_data['order_id'];
+            $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?");
+            $stmt->execute([$order_id]);
+        }
+        
         // Log inventory change if item is returned to stock
         if ($status === 'refunded') {
-            $stmt = $pdo->prepare("SELECT product_id FROM returns WHERE id = ?");
-            $stmt->execute([$return_id]);
-            $pid = $stmt->fetchColumn();
+            $pid = $return_data['product_id'];
             log_inventory_change($pdo, $pid, $_SESSION['user_id'], 1, 'Customer Return #' . $return_id);
         }
+        
         $success = "Return status updated to " . ucfirst($status);
+        if ($status === 'approved' || $status === 'refunded') {
+            $success .= " - Order #" . $order_id . " has been cancelled.";
+        }
     } else {
         $error = "Failed to update return request";
     }

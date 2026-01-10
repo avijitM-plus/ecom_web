@@ -94,19 +94,19 @@ include '../includes/sidebar.php';
                                             </div>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="text-secondary text-xs font-weight-bold">$<?php echo number_format($item['price'], 2); ?></span>
+                                            <span class="text-secondary text-xs font-weight-bold">৳<?php echo number_format($item['price'], 2); ?></span>
                                         </td>
                                         <td class="align-middle text-center text-sm">
                                             <span class="text-secondary text-xs font-weight-bold"><?php echo $item['quantity']; ?></span>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="text-secondary text-xs font-weight-bold">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></span>
+                                            <span class="text-secondary text-xs font-weight-bold">৳<?php echo number_format($item['price'] * $item['quantity'], 2); ?></span>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
                                     <tr class="border-top">
                                         <td colspan="3" class="text-end pe-4 font-weight-bold">Total Amount:</td>
-                                        <td class="text-center font-weight-bold text-primary">$<?php echo number_format($order['total_amount'], 2); ?></td>
+                                        <td class="text-center font-weight-bold text-primary">৳<?php echo number_format($order['total_amount'], 2); ?></td>
                                     </tr>
                                 </tbody>
                             </table>

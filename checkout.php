@@ -60,6 +60,12 @@ if ($selected_zone_id) {
 $taxable_amount = $subtotal - $discount;
 $tax = calculate_tax($pdo, $taxable_amount);
 
+// Free shipping for orders over ৳2000
+$free_shipping_threshold = 2000;
+if ($subtotal >= $free_shipping_threshold) {
+    $shipping_cost = 0;
+}
+
 $total = $subtotal - $discount + $shipping_cost + $tax;
 
 // Redirect if cart is empty
@@ -197,7 +203,7 @@ include 'includes/header.php';
                                    <?php echo $selected_zone_id == $option['id'] ? 'checked' : ''; ?>
                                    onchange="this.form.submit()">
                             <span><?php echo htmlspecialchars($option['zone_name']); ?></span>
-                            <span class="ml-auto font-bold">$<?php echo number_format($option['cost'], 2); ?></span>
+                            <span class="ml-auto font-bold">৳<?php echo number_format($option['cost'], 2); ?></span>
                         </label>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -228,7 +234,7 @@ include 'includes/header.php';
                 <p class="text-xs text-gray-500 mt-2">* Payment integration simulated for demo.</p>
 
                 <button type="submit" name="place_order" class="mt-8 w-full bg-electric text-white px-6 py-4 rounded-lg font-bold hover:bg-tech transition duration-300 shadow-lg">
-                    Confirm Order ($<?php echo number_format($total, 2); ?>)
+                    Confirm Order (৳<?php echo number_format($total, 2); ?>)
                 </button>
             </form>
 
@@ -240,37 +246,37 @@ include 'includes/header.php';
                         <span class="text-gray-600 dark:text-gray-400">
                             <?php echo htmlspecialchars($item['name']); ?> x <?php echo $item['quantity']; ?>
                         </span>
-                        <span class="font-medium">$<?php echo number_format($item['line_total'], 2); ?></span>
+                        <span class="font-medium">৳<?php echo number_format($item['line_total'], 2); ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
                 <div class="border-t pt-4">
                     <div class="flex justify-between mb-2">
                         <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
-                        <span class="font-bold">$<?php echo number_format($subtotal, 2); ?></span>
+                        <span class="font-bold">৳<?php echo number_format($subtotal, 2); ?></span>
                     </div>
                     
                     <?php if ($discount > 0): ?>
                     <div class="flex justify-between mb-2 text-green-600">
                         <span>Discount (<?php echo htmlspecialchars($coupon_code); ?>)</span>
-                        <span>-$<?php echo number_format($discount, 2); ?></span>
+                        <span>-৳<?php echo number_format($discount, 2); ?></span>
                     </div>
                     <?php endif; ?>
                     
                     <div class="flex justify-between mb-4">
                         <span class="text-gray-600 dark:text-gray-400">Shipping</span>
                         <span class="font-bold <?php echo $shipping_cost == 0 ? 'text-green-500' : 'text-gray-800 dark:text-gray-200'; ?>">
-                            <?php echo $shipping_cost == 0 ? 'Free' : '$' . number_format($shipping_cost, 2); ?>
+                            <?php echo $shipping_cost == 0 ? 'Free' : '৳' . number_format($shipping_cost, 2); ?>
                         </span>
                     </div>
                     
                     <div class="flex justify-between mb-4">
                         <span class="text-gray-600 dark:text-gray-400">Tax</span>
-                        <span class="font-bold">$<?php echo number_format($tax, 2); ?></span>
+                        <span class="font-bold">৳<?php echo number_format($tax, 2); ?></span>
                     </div>
                     <div class="flex justify-between text-lg font-bold">
                         <span>Total</span>
-                        <span class="text-electric">$<?php echo number_format($total, 2); ?></span>
+                        <span class="text-electric">৳<?php echo number_format($total, 2); ?></span>
                     </div>
                 </div>
             </aside>

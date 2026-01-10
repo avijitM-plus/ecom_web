@@ -3,6 +3,46 @@
  * Home Page - RoboMart E-commerce Platform
  */
 require_once 'config.php';
+
+// Handle newsletter subscription
+$newsletter_message = '';
+$newsletter_success = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['newsletter_email'])) {
+    $email = filter_var($_POST['newsletter_email'], FILTER_SANITIZE_EMAIL);
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $newsletter_message = 'Please enter a valid email address.';
+    } else {
+        try {
+            // Check if already subscribed
+            $stmt = $pdo->prepare("SELECT id, is_active FROM newsletter_subscribers WHERE email = ?");
+            $stmt->execute([$email]);
+            $existing = $stmt->fetch();
+            
+            if ($existing) {
+                if ($existing['is_active']) {
+                    $newsletter_message = 'This email is already subscribed!';
+                } else {
+                    // Reactivate subscription
+                    $stmt = $pdo->prepare("UPDATE newsletter_subscribers SET is_active = 1, subscribed_at = NOW() WHERE id = ?");
+                    $stmt->execute([$existing['id']]);
+                    $newsletter_message = 'Welcome back! Your subscription has been reactivated.';
+                    $newsletter_success = true;
+                }
+            } else {
+                // New subscription
+                $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+                $stmt = $pdo->prepare("INSERT INTO newsletter_subscribers (email, ip_address) VALUES (?, ?)");
+                $stmt->execute([$email, $ip]);
+                $newsletter_message = 'Thank you for subscribing! You will receive our latest updates.';
+                $newsletter_success = true;
+            }
+        } catch (PDOException $e) {
+            $newsletter_message = 'An error occurred. Please try again later.';
+        }
+    }
+}
+
 $page_title = "Home";
 include 'includes/header.php';
 ?>
@@ -242,7 +282,7 @@ include 'includes/header.php';
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <span class="text-lg font-bold text-gray-900 dark:text-white">$<?php echo number_format($product['price'], 2); ?></span>
+                                    <span class="text-lg font-bold text-gray-900 dark:text-white">৳<?php echo number_format($product['price'], 2); ?></span>
                                 </div>
                                 <?php if ($product['stock'] > 0): ?>
                                 <form action="cart.php" method="POST" class="inline">
@@ -314,34 +354,38 @@ include 'includes/header.php';
                 electronic components. Limited time!</p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Deal 1 -->
-                <div
-                    class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 transform hover:scale-105 transition duration-300 hover:shadow-lg hover:shadow-electric/50">
+                <!-- Deal 1 - Flash Sale with Countdown -->
+                <a href="products.php?discount=1"
+                    class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 transform hover:scale-105 transition duration-300 hover:shadow-lg hover:shadow-electric/50 block cursor-pointer">
                     <div
                         class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-in">
                         <i class="fas fa-bolt text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Robotics Flash Sale</h3>
                     <p class="mb-4 opacity-90">Up to 50% off on robotics kits. Ends in:</p>
-                    <div class="flex justify-center space-x-2 mb-4">
-                        <div class="bg-white/20 rounded-lg p-2 text-center w-12">
-                            <span class="font-bold text-lg" id="days">02</span>
+                    <div class="flex justify-center space-x-2 mb-4" id="countdown-timer">
+                        <div class="bg-white/20 rounded-lg p-2 text-center w-14">
+                            <span class="font-bold text-lg" id="countdown-days">00</span>
                             <span class="block text-xs">Days</span>
                         </div>
-                        <div class="bg-white/20 rounded-lg p-2 text-center w-12">
-                            <span class="font-bold text-lg" id="hours">12</span>
+                        <div class="bg-white/20 rounded-lg p-2 text-center w-14">
+                            <span class="font-bold text-lg" id="countdown-hours">00</span>
                             <span class="block text-xs">Hours</span>
                         </div>
-                        <div class="bg-white/20 rounded-lg p-2 text-center w-12">
-                            <span class="font-bold text-lg" id="minutes">45</span>
+                        <div class="bg-white/20 rounded-lg p-2 text-center w-14">
+                            <span class="font-bold text-lg" id="countdown-minutes">00</span>
                             <span class="block text-xs">Mins</span>
                         </div>
+                        <div class="bg-white/20 rounded-lg p-2 text-center w-14">
+                            <span class="font-bold text-lg" id="countdown-seconds">00</span>
+                            <span class="block text-xs">Secs</span>
+                        </div>
                     </div>
-                    <a href="products.php"
-                        class="bg-white text-electric px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105">
+                    <span
+                        class="bg-white text-electric px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105 inline-block">
                         Shop Now
-                    </a>
-                </div>
+                    </span>
+                </a>
 
                 <!-- Deal 2 -->
                 <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 transform hover:scale-105 transition duration-300 hover:shadow-lg hover:shadow-tech/50"
@@ -351,7 +395,7 @@ include 'includes/header.php';
                         <i class="fas fa-shipping-fast text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Free Shipping</h3>
-                    <p class="mb-4 opacity-90">On all electronics & components over $199. No code needed.</p>
+                    <p class="mb-4 opacity-90">On all electronics & components over ৳2000. No code needed.</p>
                     <button
                         class="bg-white text-electric px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105">
                         Learn More
@@ -367,7 +411,7 @@ include 'includes/header.php';
                     </div>
                     <h3 class="text-xl font-bold mb-2">Student Program</h3>
                     <p class="mb-4 opacity-90">15% off for students & educators on robotics kits.</p>
-                    <button
+                    <button onclick="openDiscountModal()"
                         class="bg-white text-electric px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105">
                         Get Discount
                     </button>
@@ -509,16 +553,148 @@ include 'includes/header.php';
             <h2 class="text-2xl font-bold mb-2 animate-text-glow">Stay Updated with Tech Innovations</h2>
             <p class="mb-6 max-w-2xl mx-auto animate-slide-up">Subscribe to our newsletter and be the first to know
                 about new robotics kits, AI modules, exclusive deals, and tech insights.</p>
-            <div class="max-w-md mx-auto flex transform hover:scale-105 transition duration-300">
-                <input type="email" placeholder="Your email address"
+            
+            <?php if ($newsletter_message): ?>
+            <div class="max-w-md mx-auto mb-4 px-4 py-3 rounded-lg <?php echo $newsletter_success ? 'bg-green-500/80' : 'bg-red-500/80'; ?>">
+                <i class="fas <?php echo $newsletter_success ? 'fa-check-circle' : 'fa-exclamation-circle'; ?> mr-2"></i>
+                <?php echo htmlspecialchars($newsletter_message); ?>
+            </div>
+            <?php endif; ?>
+            
+            <form method="POST" action="index.php#newsletter" class="max-w-md mx-auto flex transform hover:scale-105 transition duration-300" id="newsletter">
+                <input type="email" name="newsletter_email" placeholder="Your email address" required
                     class="flex-1 px-4 py-3 rounded-l-lg text-gray-800 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent">
-                <button
+                <button type="submit"
                     class="bg-accent text-white px-6 py-3 rounded-r-lg font-semibold hover:bg-yellow-500 transition duration-300 transform hover:scale-105">
                     Subscribe
                 </button>
-            </div>
+            </form>
         </div>
     </section>
+
+    <!-- Countdown Timer Script -->
+    <script>
+        // Flash Sale Countdown Timer
+        (function() {
+            // Set countdown end date - 7 days from now (or use stored value)
+            let endDate = localStorage.getItem('flashSaleEndDate');
+            
+            if (!endDate || new Date(endDate) < new Date()) {
+                // If no stored date or it has passed, set a new one (7 days from now)
+                const now = new Date();
+                now.setDate(now.getDate() + 7);
+                endDate = now.toISOString();
+                localStorage.setItem('flashSaleEndDate', endDate);
+            }
+            
+            const countdownDate = new Date(endDate).getTime();
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = countdownDate - now;
+                
+                if (distance < 0) {
+                    // Reset countdown if expired
+                    localStorage.removeItem('flashSaleEndDate');
+                    location.reload();
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                const daysEl = document.getElementById('countdown-days');
+                const hoursEl = document.getElementById('countdown-hours');
+                const minutesEl = document.getElementById('countdown-minutes');
+                const secondsEl = document.getElementById('countdown-seconds');
+                
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            // Update countdown every second
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        })();
+    </script>
+
+    <!-- Student Discount Modal -->
+    <div id="discountModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform" id="discountModalContent">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-r from-electric to-tech rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-graduation-cap text-white text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Student Discount!</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Use this code at checkout to get 15% off on all robotics kits.</p>
+                
+                <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 mb-6">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Your Discount Code</p>
+                    <div class="flex items-center justify-center gap-3">
+                        <span id="discountCode" class="text-3xl font-bold text-electric tracking-wider">SD15</span>
+                        <button onclick="copyDiscountCode()" class="bg-electric text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition" title="Copy Code">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <p id="copyMessage" class="text-green-500 text-sm mt-2 hidden"><i class="fas fa-check mr-1"></i>Copied to clipboard!</p>
+                </div>
+                
+                <a href="products.php" class="inline-block bg-gradient-to-r from-electric to-tech text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition mb-4">
+                    <i class="fas fa-shopping-cart mr-2"></i>Shop Now
+                </a>
+                
+                <button onclick="closeDiscountModal()" class="block w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mt-2">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Discount Modal Functions
+        function openDiscountModal() {
+            const modal = document.getElementById('discountModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('discountModalContent').classList.remove('scale-95');
+                document.getElementById('discountModalContent').classList.add('scale-100');
+            }, 10);
+        }
+        
+        function closeDiscountModal() {
+            const modal = document.getElementById('discountModal');
+            document.getElementById('discountModalContent').classList.remove('scale-100');
+            document.getElementById('discountModalContent').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 150);
+        }
+        
+        function copyDiscountCode() {
+            const code = document.getElementById('discountCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const msg = document.getElementById('copyMessage');
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 2000);
+            });
+        }
+        
+        // Close modal on backdrop click
+        document.getElementById('discountModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDiscountModal();
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDiscountModal();
+        });
+    </script>
 
     <!-- Footer -->
     <?php include 'includes/footer.php'; ?>

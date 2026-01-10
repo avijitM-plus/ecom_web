@@ -457,13 +457,13 @@ function get_product_by_id($pdo, $id) {
 /**
  * Create new product
  */
-function create_product($pdo, $name, $description, $price, $stock, $image_url, $is_active, $category = '', $is_featured = 0) {
+function create_product($pdo, $name, $description, $price, $stock, $image_url, $is_active, $category = '', $is_featured = 0, $discount_percent = 0) {
     try {
         $stmt = $pdo->prepare(
-            "INSERT INTO products (name, description, price, stock, image_url, is_active, category, is_featured) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO products (name, description, price, discount_percent, stock, image_url, is_active, category, is_featured) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        $stmt->execute([$name, $description, $price, $stock, $image_url, $is_active, $category, $is_featured]);
+        $stmt->execute([$name, $description, $price, $discount_percent, $stock, $image_url, $is_active, $category, $is_featured]);
         return ['success' => true, 'message' => 'Product created successfully', 'id' => $pdo->lastInsertId()];
     } catch (PDOException $e) {
         return ['success' => false, 'message' => 'Failed to create product: ' . $e->getMessage()];
@@ -473,18 +473,28 @@ function create_product($pdo, $name, $description, $price, $stock, $image_url, $
 /**
  * Update product
  */
-function update_product($pdo, $id, $name, $description, $price, $stock, $image_url, $is_active, $category = '', $is_featured = 0) {
+function update_product($pdo, $id, $name, $description, $price, $stock, $image_url, $is_active, $category = '', $is_featured = 0, $discount_percent = 0) {
     try {
         $stmt = $pdo->prepare(
             "UPDATE products 
-             SET name = ?, description = ?, price = ?, stock = ?, image_url = ?, is_active = ?, category = ?, is_featured = ?
+             SET name = ?, description = ?, price = ?, discount_percent = ?, stock = ?, image_url = ?, is_active = ?, category = ?, is_featured = ?
              WHERE id = ?"
         );
-        $stmt->execute([$name, $description, $price, $stock, $image_url, $is_active, $category, $is_featured, $id]);
+        $stmt->execute([$name, $description, $price, $discount_percent, $stock, $image_url, $is_active, $category, $is_featured, $id]);
         return ['success' => true, 'message' => 'Product updated successfully'];
     } catch (PDOException $e) {
         return ['success' => false, 'message' => 'Failed to update product: ' . $e->getMessage()];
     }
+}
+
+/**
+ * Calculate discounted price
+ */
+function get_discounted_price($price, $discount_percent) {
+    if ($discount_percent > 0 && $discount_percent <= 100) {
+        return $price * (1 - ($discount_percent / 100));
+    }
+    return $price;
 }
 
 /**
@@ -532,7 +542,7 @@ function get_cart_total_quantity() {
 }
 
 /**
- * Get cart total price
+ * Get cart total price (with discounts applied)
  */
 function get_cart_total($pdo) {
     if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
@@ -543,7 +553,9 @@ function get_cart_total($pdo) {
     foreach ($_SESSION['cart'] as $product_id => $quantity) {
         $product = get_product_by_id($pdo, $product_id);
         if ($product) {
-            $total += $product['price'] * $quantity;
+            $discount = isset($product['discount_percent']) ? $product['discount_percent'] : 0;
+            $final_price = get_discounted_price($product['price'], $discount);
+            $total += $final_price * $quantity;
         }
     }
     
@@ -586,7 +598,7 @@ function get_cart_count() {
 
 function get_cart_details($pdo) {
     $cart = get_cart();
-    $details = ['items' => [], 'subtotal' => 0];
+    $details = ['items' => [], 'subtotal' => 0, 'savings' => 0];
     
     if (empty($cart)) {
         return $details;
@@ -602,13 +614,20 @@ function get_cart_details($pdo) {
     
     foreach ($products as $product) {
         $qty = $cart[$product['id']];
-        $total = $product['price'] * $qty;
+        $discount = isset($product['discount_percent']) ? $product['discount_percent'] : 0;
+        $original_price = $product['price'];
+        $final_price = get_discounted_price($original_price, $discount);
+        $line_total = $final_price * $qty;
+        $original_total = $original_price * $qty;
         
         $product['quantity'] = $qty;
-        $product['line_total'] = $total;
+        $product['final_price'] = $final_price;
+        $product['line_total'] = $line_total;
+        $product['original_line_total'] = $original_total;
         
         $details['items'][] = $product;
-        $details['subtotal'] += $total;
+        $details['subtotal'] += $line_total;
+        $details['savings'] += ($original_total - $line_total);
     }
     
     return $details;
@@ -625,6 +644,40 @@ function get_featured_products($pdo, $limit = 4) {
         return $stmt->fetchAll();
     } catch (PDOException $e) {
         return [];
+    }
+}
+
+/**
+ * Get Discounted Products (products with discount_percent > 0)
+ */
+function get_discounted_products($pdo, $page = 1, $per_page = 12) {
+    $offset = ($page - 1) * $per_page;
+    
+    try {
+        // Count total discounted products
+        $count_stmt = $pdo->query("SELECT COUNT(*) FROM products WHERE discount_percent > 0 AND is_active = 1");
+        $total = $count_stmt->fetchColumn();
+        
+        // Fetch discounted products
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE discount_percent > 0 AND is_active = 1 ORDER BY discount_percent DESC LIMIT ? OFFSET ?");
+        $stmt->bindValue(1, (int)$per_page, PDO::PARAM_INT);
+        $stmt->bindValue(2, (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $products = $stmt->fetchAll();
+        
+        return [
+            'products' => $products,
+            'total_pages' => ceil($total / $per_page),
+            'current_page' => $page,
+            'total_items' => $total
+        ];
+    } catch (PDOException $e) {
+        return [
+            'products' => [],
+            'total_pages' => 0,
+            'current_page' => 1,
+            'total_items' => 0
+        ];
     }
 }
 
@@ -703,22 +756,73 @@ function has_purchased_product($pdo, $user_id, $product_id) {
 }
 
 /**
+ * Get total number of times a user has purchased a product (completed orders)
+ */
+function get_purchase_count($pdo, $user_id, $product_id) {
+    $stmt = $pdo->prepare("
+        SELECT COALESCE(SUM(oi.quantity), 0) as total_purchases
+        FROM orders o 
+        JOIN order_items oi ON o.id = oi.order_id 
+        WHERE o.user_id = ? 
+        AND oi.product_id = ? 
+        AND o.status = 'completed'
+    ");
+    $stmt->execute([$user_id, $product_id]);
+    return (int)$stmt->fetchColumn();
+}
+
+/**
+ * Get number of reviews a user has submitted for a product
+ */
+function get_user_review_count($pdo, $user_id, $product_id) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reviews WHERE product_id = ? AND user_id = ?");
+    $stmt->execute([$product_id, $user_id]);
+    return (int)$stmt->fetchColumn();
+}
+
+/**
+ * Check if user can still review a product (reviews < purchases)
+ */
+function can_review_product($pdo, $user_id, $product_id) {
+    $purchases = get_purchase_count($pdo, $user_id, $product_id);
+    $reviews = get_user_review_count($pdo, $user_id, $product_id);
+    
+    return [
+        'can_review' => $purchases > $reviews,
+        'purchases' => $purchases,
+        'reviews' => $reviews,
+        'remaining' => max(0, $purchases - $reviews)
+    ];
+}
+
+/**
  * Ratings & Reviews System
  */
 function add_review($pdo, $product_id, $user_id, $rating, $comment) {
     if ($rating < 1 || $rating > 5) return ['success' => false, 'message' => 'Invalid rating'];
     
-    // Check duplication
-    $stmt = $pdo->prepare("SELECT id FROM reviews WHERE product_id = ? AND user_id = ?");
-    $stmt->execute([$product_id, $user_id]);
-    if ($stmt->fetch()) {
-        return ['success' => false, 'message' => 'You have already reviewed this product'];
+    // Check if user can review (purchases > reviews submitted)
+    $review_status = can_review_product($pdo, $user_id, $product_id);
+    
+    if ($review_status['purchases'] == 0) {
+        return ['success' => false, 'message' => 'You must purchase this product before reviewing'];
+    }
+    
+    if (!$review_status['can_review']) {
+        return ['success' => false, 'message' => 'You have already reviewed this product for all your purchases'];
     }
     
     try {
         $stmt = $pdo->prepare("INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (?, ?, ?, ?)");
         $stmt->execute([$product_id, $user_id, $rating, $comment]);
-        return ['success' => true, 'message' => 'Review submitted successfully'];
+        
+        $remaining = $review_status['remaining'] - 1;
+        $message = 'Review submitted successfully!';
+        if ($remaining > 0) {
+            $message .= " You can still leave {$remaining} more review(s).";
+        }
+        
+        return ['success' => true, 'message' => $message];
     } catch (PDOException $e) {
         return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
     }

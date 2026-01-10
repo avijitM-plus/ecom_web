@@ -204,26 +204,65 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             <!-- Navigation -->
             <?php if (!isset($hide_nav) || !$hide_nav): ?>
+            <?php
+            // Fetch categories that should show in navigation
+            $nav_categories = [];
+            try {
+                $nav_stmt = $pdo->query("SELECT * FROM categories WHERE show_in_nav = 1 ORDER BY nav_order ASC, name ASC LIMIT 6");
+                $nav_categories = $nav_stmt->fetchAll();
+            } catch (Exception $e) {
+                // Fallback if column doesn't exist yet
+                try {
+                    $nav_stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC LIMIT 6");
+                    $nav_categories = $nav_stmt->fetchAll();
+                } catch (Exception $e2) {
+                    $nav_categories = [];
+                }
+            }
+            ?>
             <nav class="hidden md:flex py-3 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex space-x-8">
                     <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition <?php echo $current_page == 'index.php' ? 'text-electric' : ''; ?>">Home</a>
-                    <a href="products.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition <?php echo $current_page == 'products.php' ? 'text-electric' : ''; ?>">All Products</a>
-                    <a href="products.php?cat=robotics" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Robotics</a>
-                    <a href="products.php?cat=microcontrollers" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">Microcontrollers</a>
-                    <a href="products.php?cat=iot" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">IoT Devices</a>
-                    <a href="products.php?cat=ai" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition">AI & ML</a>
-                    <a href="products.php" class="text-electric dark:text-electric font-medium">Flash Sale</a>
+                    <a href="products.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition <?php echo $current_page == 'products.php' && !isset($_GET['category']) && !isset($_GET['discount']) ? 'text-electric' : ''; ?>">All Products</a>
+                    <?php foreach ($nav_categories as $nav_cat): ?>
+                    <a href="products.php?category=<?php echo htmlspecialchars($nav_cat['slug']); ?>" 
+                       class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition <?php echo isset($_GET['category']) && $_GET['category'] == $nav_cat['slug'] ? 'text-electric' : ''; ?>">
+                        <?php echo htmlspecialchars($nav_cat['name']); ?>
+                    </a>
+                    <?php endforeach; ?>
+                    <a href="blog.php" class="text-gray-700 dark:text-gray-300 hover:text-electric dark:hover:text-electric font-medium transition <?php echo $current_page == 'blog.php' || $current_page == 'blog-details.php' ? 'text-electric' : ''; ?>">
+                        <i class="fas fa-newspaper mr-1"></i>Blog
+                    </a>
+                    <a href="products.php?discount=1" class="text-accent dark:text-accent font-medium hover:text-yellow-600 transition <?php echo isset($_GET['discount']) ? 'text-yellow-600' : ''; ?>">
+                        <i class="fas fa-bolt mr-1"></i>Flash Sale
+                    </a>
                 </div>
             </nav>
             <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
                 <div class="px-4 pt-4 pb-6 space-y-4">
                     <a href="index.php" class="block text-gray-700 dark:text-gray-300 hover:text-electric">Home</a>
                     <a href="products.php" class="block text-gray-700 dark:text-gray-300 hover:text-electric">All Products</a>
-                    <a href="products.php" class="block text-electric dark:text-electric font-medium">Flash Sale</a>
+                    <?php foreach ($nav_categories as $nav_cat): ?>
+                    <a href="products.php?category=<?php echo htmlspecialchars($nav_cat['slug']); ?>" class="block text-gray-700 dark:text-gray-300 hover:text-electric">
+                        <?php echo htmlspecialchars($nav_cat['name']); ?>
+                    </a>
+                    <?php endforeach; ?>
+                    <a href="blog.php" class="block text-gray-700 dark:text-gray-300 hover:text-electric">
+                        <i class="fas fa-newspaper mr-1"></i>Blog
+                    </a>
+                    <a href="products.php?discount=1" class="block text-accent dark:text-accent font-medium">
+                        <i class="fas fa-bolt mr-1"></i>Flash Sale
+                    </a>
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <?php if ($is_logged_in): ?>
+                        <a href="account.php" class="block text-gray-700 dark:text-gray-300 py-2">My Account</a>
+                        <a href="orders.php" class="block text-gray-700 dark:text-gray-300 py-2">My Orders</a>
+                        <a href="logout.php" class="block text-red-500 py-2">Logout</a>
+                        <?php else: ?>
                         <a href="login.php" class="block text-gray-700 dark:text-gray-300 py-2">Sign In</a>
-                        <a href="account.php" class="block text-gray-700 dark:text-gray-300 py-2">Account</a>
-                        <a href="cart.php" class="block text-gray-700 dark:text-gray-300 py-2">Cart</a>
+                        <a href="register.php" class="block text-gray-700 dark:text-gray-300 py-2">Register</a>
+                        <?php endif; ?>
+                        <a href="cart.php" class="block text-gray-700 dark:text-gray-300 py-2">Cart (<?php echo $cart_count; ?>)</a>
                     </div>
                 </div>
             </div>

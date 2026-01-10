@@ -9,9 +9,15 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 $category = isset($_GET['category']) ? $_GET['category'] : '';
 $min_price = isset($_GET['min_price']) ? $_GET['min_price'] : '';
 $max_price = isset($_GET['max_price']) ? $_GET['max_price'] : '';
+$discount_filter = isset($_GET['discount']) && $_GET['discount'] == '1';
 $per_page = 12;
 
-$result = get_all_products($pdo, $page, $per_page, $search, $category, $min_price, $max_price);
+// If discount filter is enabled, fetch only discounted products
+if ($discount_filter) {
+    $result = get_discounted_products($pdo, $page, $per_page);
+} else {
+    $result = get_all_products($pdo, $page, $per_page, $search, $category, $min_price, $max_price);
+}
 $products = $result['products'];
 $total_pages = $result['total_pages'];
 $current_page = $result['current_page'];
@@ -26,11 +32,29 @@ $stmt_cats = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
 $sidebar_categories = $stmt_cats->fetchAll();
 ?>
 <?php
-$page_title = "All Products";
+$page_title = $discount_filter ? "Flash Sale - Discounted Products" : "All Products";
 include 'includes/header.php';
 ?>
 
     <main class="container mx-auto px-4 py-8">
+        <?php if ($discount_filter): ?>
+        <!-- Flash Sale Banner -->
+        <div class="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl p-6 mb-8 shadow-lg">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl animate-pulse"><i class="fas fa-bolt"></i></div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold">⚡ Flash Sale!</h1>
+                        <p class="opacity-90">Grab these amazing discounts before they're gone!</p>
+                    </div>
+                </div>
+                <a href="products.php" class="bg-white text-red-500 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to All Products
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
+        
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar Filters -->
             <aside class="w-full md:w-1/4 h-fit">
@@ -117,8 +141,15 @@ include 'includes/header.php';
                                      </form>
                                 </div>
                                 
-                                <?php if ($product['stock'] == 0): ?>
-                                     <div class="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">Out of Stock</div>
+                                <?php 
+                                $discount = isset($product['discount_percent']) ? floatval($product['discount_percent']) : 0;
+                                if ($discount > 0): 
+                                ?>
+                                    <div class="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                        -<?php echo number_format($discount, 0); ?>%
+                                    </div>
+                                <?php elseif ($product['stock'] == 0): ?>
+                                     <div class="absolute top-4 left-4 bg-gray-500 text-white px-2 py-1 rounded text-sm font-semibold">Out of Stock</div>
                                 <?php endif; ?>
                             </div>
                             <div class="p-4">
@@ -147,7 +178,16 @@ include 'includes/header.php';
                                     </a>
                                 </h3>
                                 <div class="flex justify-between items-center mt-3">
-                                    <span class="text-lg font-bold text-gray-900 dark:text-white">$<?php echo number_format($product['price'], 2); ?></span>
+                                    <?php if ($discount > 0): 
+                                        $final_price = get_discounted_price($product['price'], $discount);
+                                    ?>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg font-bold text-red-500">৳<?php echo number_format($final_price, 2); ?></span>
+                                            <span class="text-sm text-gray-400 line-through">৳<?php echo number_format($product['price'], 2); ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-lg font-bold text-gray-900 dark:text-white">৳<?php echo number_format($product['price'], 2); ?></span>
+                                    <?php endif; ?>
                                     <?php if ($product['stock'] > 0): ?>
                                         <form action="cart.php" method="POST" class="inline">
                                             <input type="hidden" name="action" value="add">

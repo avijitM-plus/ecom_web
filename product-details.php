@@ -70,7 +70,7 @@ include 'includes/header.php';
                 </div>
                 
                 <div class="mb-4">
-                    <span class="text-3xl font-extrabold text-gray-900 dark:text-white">$<?php echo number_format($product['price'], 2); ?></span>
+                    <span class="text-3xl font-extrabold text-gray-900 dark:text-white">৳<?php echo number_format($product['price'], 2); ?></span>
                 </div>
                 
                  <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
@@ -139,17 +139,24 @@ include 'includes/header.php';
             <!-- Review Form -->
             <?php 
             $can_review = false;
+            $review_status = null;
             if ($is_logged_in) {
-                // Check if bought and completed
-                if (has_purchased_product($pdo, $_SESSION['user_id'], $product['id'])) {
-                    $can_review = true;
-                }
+                // Check how many reviews user can still submit
+                $review_status = can_review_product($pdo, $_SESSION['user_id'], $product['id']);
+                $can_review = $review_status['can_review'];
             }
             ?>
 
             <?php if ($can_review): ?>
                 <form method="POST" class="mb-10 bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                    <h3 class="font-semibold mb-4">Write a Review</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Write a Review</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            You can leave <?php echo $review_status['remaining']; ?> more review(s) 
+                            (<?php echo $review_status['reviews']; ?>/<?php echo $review_status['purchases']; ?> submitted)
+                        </span>
+                    </div>
                     <input type="hidden" name="submit_review" value="1">
                     
                     <div class="mb-4">

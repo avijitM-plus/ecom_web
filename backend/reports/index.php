@@ -141,7 +141,7 @@ include '../includes/sidebar.php';
                 <tr>
                     <td><?php echo htmlspecialchars($product['name']); ?></td>
                     <td><?php echo $product['total_sold']; ?></td>
-                    <td>$<?php echo number_format($product['revenue'], 2); ?></td>
+                    <td>৳<?php echo number_format($product['revenue'], 2); ?></td>
                 </tr>
                 <?php endforeach; ?>
                 <?php endif; ?>

@@ -38,7 +38,7 @@ include 'includes/sidebar.php';
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="stat-label">Total Sales</p>
-                    <h2 class="stat-value">$<?php echo number_format($stats['total_sales'], 2); ?></h2>
+                    <h2 class="stat-value">৳<?php echo number_format($stats['total_sales'], 2); ?></h2>
                 </div>
                 <div class="stat-icon">
                     <i class="bi bi-currency-dollar"></i>
@@ -123,7 +123,7 @@ include 'includes/sidebar.php';
                         <tr>
                             <td>#<?php echo $order['id']; ?></td>
                             <td><?php echo htmlspecialchars($order['full_name'] ?? 'Guest'); ?></td>
-                            <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                            <td>৳<?php echo number_format($order['total_amount'], 2); ?></td>
                             <td>
                                 <?php
                                 $badge_class = match($order['status']) {

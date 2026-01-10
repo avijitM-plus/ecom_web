@@ -150,7 +150,7 @@ include '../includes/sidebar.php';
                                             <p class="text-xs text-secondary mb-0"><?php echo htmlspecialchars($order['email'] ?? ''); ?></p>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="text-secondary text-xs font-weight-bold">$<?php echo number_format($order['total_amount'], 2); ?></span>
+                                            <span class="text-secondary text-xs font-weight-bold">৳<?php echo number_format($order['total_amount'], 2); ?></span>
                                         </td>
                                         <td class="align-middle text-center text-sm">
                                             <?php
