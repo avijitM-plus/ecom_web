@@ -17,11 +17,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         update_cart_quantity($product_id, $quantity);
     } elseif ($action === 'remove' && $product_id > 0) {
         remove_from_cart($product_id);
+    } elseif ($action === 'apply_coupon') {
+        $code = strtoupper(trim(sanitize_input($_POST['code'] ?? '')));
+        $coupon = get_coupon_by_code($pdo, $code);
+        
+        $current_total = get_cart_total($pdo);
+        $val = validate_coupon($coupon, $current_total);
+        
+        if ($val['valid']) {
+            $_SESSION['coupon'] = $coupon;
+            $coupon_success = "Coupon applied successfully!";
+        } else {
+            $coupon_error = $val['message'];
+        }
+    } elseif ($action === 'remove_coupon') {
+        unset($_SESSION['coupon']);
+        $coupon_success = "Coupon removed.";
     }
     
-    // Redirect to prevent form resubmission
-    header('Location: cart.php');
-    exit;
+    // Redirect to prevent form resubmission (except for coupon errors which we want to show)
+    if (!isset($coupon_error) && !isset($coupon_success)) {
+        header('Location: cart.php');
+        exit;
+    }
 }
 
 // Get cart details

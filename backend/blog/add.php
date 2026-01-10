@@ -7,14 +7,21 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 
 $title = '';
+$slug = '';
 $content = '';
 $image_url = '';
+$status = 'published';
+$category = '';
+$excerpt = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $image_url = trim($_POST['image_url']);
+    $status = trim($_POST['status']);
+    $category = trim($_POST['category']);
+    $excerpt = trim($_POST['excerpt']);
     
     if (empty($title) || empty($content)) {
         $error = "Title and Content are required.";
@@ -30,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO blog_posts (title, slug, content, image_url, author_id) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$title, $slug, $content, $image_url, $_SESSION['user_id']]);
+            $stmt = $pdo->prepare("INSERT INTO blog_posts (title, slug, content, image_url, status, category, excerpt, author_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$title, $slug, $content, $image_url, $status, $category, $excerpt, $_SESSION['user_id']]);
             echo "<script>window.location.href='index.php';</script>";
             exit;
         } catch (PDOException $e) {
@@ -40,6 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
+<!-- TinyMCE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+<script>
+    tinymce.init({
+        selector: '#content',
+        height: 500,
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+        tinycomments_mode: 'embedded',
+        tinycomments_author: 'Author name',
+        mergetags_list: [
+            { value: 'First.Name', title: 'First Name' },
+            { value: 'Email', title: 'Email' },
+        ],
+    });
+</script>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -64,21 +88,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Image URL</label>
-                            <input type="url" name="image_url" class="form-control" value="<?php echo htmlspecialchars($image_url); ?>" placeholder="https://example.com/image.jpg">
-                            <div class="form-text">Paste a direct link to a featured image.</div>
+                            <label class="form-label">Excerpt (Summary)</label>
+                            <textarea name="excerpt" class="form-control" rows="3"><?php echo htmlspecialchars($excerpt); ?></textarea>
+                            <div class="form-text">A short summary displayed on the blog listing page.</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Content</label>
-                            <textarea name="content" class="form-control" rows="10" required><?php echo htmlspecialchars($content); ?></textarea>
-                            <div class="form-text">You can use simple text. HTML is stored as plain text currently.</div>
+                            <textarea name="content" id="content" class="form-control" rows="10"><?php echo htmlspecialchars($content); ?></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg"></i> Publish Post
-                        </button>
-                    </form>
+                        <div class="mb-3">
+                            <label class="form-label">Image URL</label>
+                            <input type="url" name="image_url" class="form-control" value="<?php echo htmlspecialchars($image_url); ?>" placeholder="https://example.com/image.jpg">
+                            <div class="form-text">Paste a direct link to a featured image.</div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -86,18 +110,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-lg-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Publish Options</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="published" <?php echo $status === 'published' ? 'selected' : ''; ?>>Published</option>
+                            <option value="draft" <?php echo $status === 'draft' ? 'selected' : ''; ?>>Draft</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input type="text" name="category" class="form-control" value="<?php echo htmlspecialchars($category); ?>" placeholder="e.g. Technology, AI">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Publish Post
+                    </button>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Tips</h6>
                 </div>
                 <div class="card-body">
                     <ul class="mb-0 small text-muted">
                         <li>Title should be catchy and descriptive.</li>
-                        <li>Slug will be auto-generated from the title.</li>
-                        <li>Use high-quality images for better engagement.</li>
+                        <li>Use high-quality images.</li>
+                        <li>Categories help organize your content.</li>
+                        <li>Excerpts improve SEO and user experience.</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
+    </form>
 </div>
 
 <?php include '../includes/footer.php'; ?>

@@ -94,21 +94,36 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
         <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($posts as $post): ?>
-                <article class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 group">
-                    <div class="h-48 overflow-hidden">
+                <article class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 group flex flex-col h-full">
+                    <div class="h-48 overflow-hidden relative">
                         <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        <?php if (!empty($post['category'])): ?>
+                            <span class="absolute top-4 right-4 bg-electric text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                                <?php echo htmlspecialchars($post['category']); ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
-                    <div class="p-6">
+                    <div class="p-6 flex-grow flex flex-col">
                         <div class="text-sm text-electric font-semibold mb-2"><?php echo date('M d, Y', strtotime($post['created_at'])); ?></div>
                         <h2 class="text-xl font-bold mb-3 line-clamp-2">
                             <a href="blog-details.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="hover:text-electric transition">
                                 <?php echo htmlspecialchars($post['title']); ?>
                             </a>
                         </h2>
-                        <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                            <?php echo substr(strip_tags($post['content']), 0, 100) . '...'; ?>
-                        </p>
-                        <a href="blog-details.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="text-electric font-medium hover:underline">Read More &rarr;</a>
+                        <div class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 prose dark:prose-invert prose-sm">
+                            <?php 
+                            if (!empty($post['excerpt'])) {
+                                echo htmlspecialchars($post['excerpt']);
+                            } else {
+                                echo substr(strip_tags($post['content']), 0, 100) . '...'; 
+                            }
+                            ?>
+                        </div>
+                        <div class="mt-auto">
+                            <a href="blog-details.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="text-electric font-medium hover:underline inline-flex items-center">
+                                Read More <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                            </a>
+                        </div>
                     </div>
                 </article>
                 <?php endforeach; ?>

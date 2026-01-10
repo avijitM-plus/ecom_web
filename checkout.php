@@ -32,7 +32,35 @@ if (isset($_SESSION['coupon'])) {
         unset($_SESSION['coupon']);
     }
 }
-$total = $subtotal - $discount;
+// Calculate Shipping Options
+$cart_weight = get_cart_total_quantity() * 0.5; // Estimated 0.5kg per item
+$shipping_options = get_shipping_zones_with_cost($pdo, $cart_weight);
+
+// Determine selected shipping
+$selected_zone_id = $_POST['shipping_zone_id'] ?? ($_SESSION['last_shipping_zone_id'] ?? null);
+$shipping_cost = 0;
+
+// Find cost for selected zone
+if ($selected_zone_id) {
+    foreach ($shipping_options as $option) {
+        if ($option['id'] == $selected_zone_id) {
+            $shipping_cost = $option['cost'];
+            break;
+        }
+    }
+} else {
+    // Default to first option if exists
+    if (!empty($shipping_options)) {
+        $selected_zone_id = $shipping_options[0]['id'];
+        $shipping_cost = $shipping_options[0]['cost'];
+    }
+}
+
+// Calculate Tax
+$taxable_amount = $subtotal - $discount;
+$tax = calculate_tax($pdo, $taxable_amount);
+
+$total = $subtotal - $discount + $shipping_cost + $tax;
 
 // Redirect if cart is empty
 if (empty($cart_items)) {
@@ -41,7 +69,7 @@ if (empty($cart_items)) {
 }
 
 // Handle Order Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) { // Added check for specific submit button
     $user_id = $_SESSION['user_id'];
     
     // Capture individual fields
@@ -50,6 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city = $_POST['city'];
     $postal_code = $_POST['postal_code'];
     $country = $_POST['country'];
+    
+    // Store preference
+    $_SESSION['last_shipping_zone_id'] = $selected_zone_id;
+    
+    // Re-verify cost (logic already above, $shipping_cost is set from POST)
     
     // Update user's address for next time
     update_user_address($pdo, $user_id, $phone, $address_line, $city, $postal_code, $country);
@@ -61,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
         
         // 1. Create Order
+        // Note: You might want to add a shipping_cost column to orders table later
         $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, coupon_code, discount_amount, status, shipping_address, payment_method) VALUES (?, ?, ?, ?, 'pending', ?, ?)");
         $stmt->execute([$user_id, $total, $coupon_code, $discount, $address, $payment_method]);
         $order_id = $pdo->lastInsertId();
@@ -141,9 +175,34 @@ include 'includes/header.php';
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm mb-1">Country</label>
-                        <input type="text" name="country" required value="<?php echo htmlspecialchars($user['country'] ?? ''); ?>" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select name="country" required class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                            <option value="">Select Country</option>
+                            <?php foreach (get_countries() as $code => $name): ?>
+                                <option value="<?php echo $code; ?>" <?php echo (isset($user['country']) && $user['country'] == $code) || (isset($_POST['country']) && $_POST['country'] == $code) ? 'selected' : ''; ?>>
+                                    <?php echo $name; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
+
+                <h2 class="font-semibold mt-8 mb-4 text-xl border-b pb-2">Shipping Method</h2>
+                <div class="space-y-2 mb-6">
+                    <?php if (empty($shipping_options)): ?>
+                        <div class="p-3 border rounded bg-yellow-50 text-yellow-700">No shipping options available for your cart/location.</div>
+                    <?php else: ?>
+                        <?php foreach ($shipping_options as $option): ?>
+                        <label class="flex items-center space-x-2 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 <?php echo $selected_zone_id == $option['id'] ? 'border-electric bg-blue-50 dark:bg-gray-600' : ''; ?>">
+                            <input type="radio" name="shipping_zone_id" value="<?php echo $option['id']; ?>" 
+                                   <?php echo $selected_zone_id == $option['id'] ? 'checked' : ''; ?>
+                                   onchange="this.form.submit()">
+                            <span><?php echo htmlspecialchars($option['zone_name']); ?></span>
+                            <span class="ml-auto font-bold">$<?php echo number_format($option['cost'], 2); ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <!-- Hidden input to treat onchange submits differently if needed, or just relying on value persistence -->
 
                 <h2 class="font-semibold mt-8 mb-4 text-xl border-b pb-2">Payment Method</h2>
                 <div class="space-y-2 mb-6">
@@ -168,7 +227,7 @@ include 'includes/header.php';
                 </div>
                 <p class="text-xs text-gray-500 mt-2">* Payment integration simulated for demo.</p>
 
-                <button type="submit" class="mt-8 w-full bg-electric text-white px-6 py-4 rounded-lg font-bold hover:bg-tech transition duration-300 shadow-lg">
+                <button type="submit" name="place_order" class="mt-8 w-full bg-electric text-white px-6 py-4 rounded-lg font-bold hover:bg-tech transition duration-300 shadow-lg">
                     Confirm Order ($<?php echo number_format($total, 2); ?>)
                 </button>
             </form>
@@ -200,7 +259,14 @@ include 'includes/header.php';
                     
                     <div class="flex justify-between mb-4">
                         <span class="text-gray-600 dark:text-gray-400">Shipping</span>
-                        <span class="font-bold text-green-500">Free</span>
+                        <span class="font-bold <?php echo $shipping_cost == 0 ? 'text-green-500' : 'text-gray-800 dark:text-gray-200'; ?>">
+                            <?php echo $shipping_cost == 0 ? 'Free' : '$' . number_format($shipping_cost, 2); ?>
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between mb-4">
+                        <span class="text-gray-600 dark:text-gray-400">Tax</span>
+                        <span class="font-bold">$<?php echo number_format($tax, 2); ?></span>
                     </div>
                     <div class="flex justify-between text-lg font-bold">
                         <span>Total</span>

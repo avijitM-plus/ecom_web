@@ -10,6 +10,10 @@ $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
 $search = $_GET['search'] ?? '';
+$status_filter = $_GET['status'] ?? '';
+$start_date = $_GET['start_date'] ?? '';
+$end_date = $_GET['end_date'] ?? '';
+
 $where_clauses = [];
 $params = [];
 
@@ -18,12 +22,28 @@ if ($search) {
         $where_clauses[] = "o.id = ?";
         $params[] = $search;
     } else {
-        $where_clauses[] = "u.full_name LIKE ?";
+        $where_clauses[] = "(u.full_name LIKE ? OR u.email LIKE ?)";
+        $params[] = "%$search%";
         $params[] = "%$search%";
     }
 }
 
-$where_sql = !empty($where_clauses) ? 'WHERE ' . implode(' OR ', $where_clauses) : '';
+if ($status_filter) {
+    $where_clauses[] = "o.status = ?";
+    $params[] = $status_filter;
+}
+
+if ($start_date) {
+    $where_clauses[] = "DATE(o.created_at) >= ?";
+    $params[] = $start_date;
+}
+
+if ($end_date) {
+    $where_clauses[] = "DATE(o.created_at) <= ?";
+    $params[] = $end_date;
+}
+
+$where_sql = !empty($where_clauses) ? 'WHERE ' . implode(' AND ', $where_clauses) : '';
 
 // Count Total
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders o LEFT JOIN users u ON o.user_id = u.id $where_sql");
@@ -55,16 +75,53 @@ include '../includes/sidebar.php';
                     <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                         <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center">
                             <h6 class="text-white text-capitalize ps-3 mb-0">Order Management</h6>
-                            <div class="pe-3">
-                                <form action="" method="GET" class="d-flex gap-2">
-                                    <input type="text" name="search" class="form-control form-control-sm bg-white px-2" 
-                                           placeholder="Search by ID or User" 
-                                           value="<?php echo htmlspecialchars($search ?? ''); ?>">
-                                    <button type="submit" class="btn btn-sm btn-light mb-0">Search</button>
-                                </form>
-                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="card-body px-4 pb-2">
+                        <form action="" method="GET" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label mb-1 font-weight-bold text-xs">Search</label>
+                                <input type="text" name="search" class="form-control form-control-sm border ps-2" 
+                                       placeholder="ID, Name or Email" 
+                                       value="<?php echo htmlspecialchars($search); ?>">
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <label class="form-label mb-1 font-weight-bold text-xs">Status</label>
+                                <select name="status" class="form-control form-control-sm border ps-2">
+                                    <option value="">All Statuses</option>
+                                    <?php 
+                                    $statuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
+                                    foreach ($statuses as $s): 
+                                    ?>
+                                    <option value="<?php echo $s; ?>" <?php echo $status_filter === $s ? 'selected' : ''; ?>>
+                                        <?php echo ucfirst($s); ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label mb-1 font-weight-bold text-xs">Date Range</label>
+                                <div class="d-flex gap-2">
+                                    <input type="date" name="start_date" class="form-control form-control-sm border ps-2" 
+                                           value="<?php echo htmlspecialchars($start_date); ?>">
+                                    <input type="date" name="end_date" class="form-control form-control-sm border ps-2" 
+                                           value="<?php echo htmlspecialchars($end_date); ?>">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <button type="submit" class="btn btn-sm btn-dark mb-0">Filter</button>
+                                <?php if ($search || $status_filter || $start_date || $end_date): ?>
+                                <a href="index.php" class="btn btn-sm btn-light mb-0 ms-2">Clear</a>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="card-body px-0 pb-2">
                         <div class="table-responsive p-0">
                             <table class="table align-items-center mb-0">

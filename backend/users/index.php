@@ -11,9 +11,11 @@ $page_title = 'User Management';
 // Get pagination parameters
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $search = isset($_GET['search']) ? sanitize_input($_GET['search']) : '';
+$role = isset($_GET['role']) ? sanitize_input($_GET['role']) : '';
+$status = isset($_GET['status']) ? sanitize_input($_GET['status']) : '';
 
 // Get users with pagination
-$result = get_all_users($pdo, $page, ADMIN_PER_PAGE, $search);
+$result = get_all_users($pdo, $page, ADMIN_PER_PAGE, $search, $role, $status);
 $users = $result['users'];
 $total_pages = $result['pages'];
 $current_page = $result['current_page'];
@@ -71,25 +73,43 @@ include '../includes/sidebar.php';
 <div class="table-container mb-4">
     <div class="p-3">
         <form method="GET" class="row g-3 align-items-end">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label">Search Users</label>
                 <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" 
-                           placeholder="Search by name or email..." 
+                           placeholder="Name or email..." 
                            value="<?php echo htmlspecialchars($search); ?>">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i>
-                    </button>
                 </div>
             </div>
-            <div class="col-md-6 text-md-end">
-                <?php if ($search): ?>
-                <a href="index.php" class="btn btn-outline-light">
-                    <i class="bi bi-x-lg me-2"></i>Clear Search
-                </a>
-                <?php endif; ?>
-                <span class="ms-3 text-muted"><?php echo $total_users; ?> users found</span>
+            <div class="col-md-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    <option value="user" <?php echo $role === 'user' ? 'selected' : ''; ?>>User</option>
+                    <option value="admin" <?php echo $role === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                </select>
             </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="1" <?php echo $status === '1' ? 'selected' : ''; ?>>Active</option>
+                    <option value="0" <?php echo $status === '0' ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+            
+            <?php if ($search || $role || $status !== ''): ?>
+            <div class="col-12 mt-2 text-end">
+                <a href="index.php" class="text-muted text-decoration-none small">
+                    <i class="bi bi-x-lg me-1"></i>Clear Filters
+                </a>
+                <span class="ms-2 text-muted small border-start ps-2"><?php echo $total_users; ?> results</span>
+            </div>
+            <?php endif; ?>
         </form>
     </div>
 </div>
@@ -172,7 +192,7 @@ include '../includes/sidebar.php';
             <ul class="pagination pagination-sm mb-0">
                 <?php if ($current_page > 1): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $current_page - 1; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $current_page - 1; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>">
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 </li>
@@ -184,7 +204,7 @@ include '../includes/sidebar.php';
                 for ($i = $start; $i <= $end; $i++): 
                 ?>
                 <li class="page-item <?php echo $i == $current_page ? 'active' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>">
                         <?php echo $i; ?>
                     </a>
                 </li>
@@ -192,7 +212,7 @@ include '../includes/sidebar.php';
                 
                 <?php if ($current_page < $total_pages): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $current_page + 1; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $current_page + 1; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>">
                         <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>

@@ -11,13 +11,37 @@ $page_title = 'Product Management';
 // Get pagination parameters
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $search = isset($_GET['search']) ? sanitize_input($_GET['search']) : '';
+$category_filter = isset($_GET['category']) ? sanitize_input($_GET['category']) : '';
+$min_price = isset($_GET['min_price']) ? floatval($_GET['min_price']) : 0;
+$max_price = isset($_GET['max_price']) ? floatval($_GET['max_price']) : 0;
+$status_filter = isset($_GET['status']) ? sanitize_input($_GET['status']) : ''; // 'active' or 'draft' or empty
+$stock_filter = isset($_GET['stock']) ? sanitize_input($_GET['stock']) : '';
 
 // Get products with pagination
-$result = get_all_products($pdo, $page, ADMIN_PER_PAGE, $search);
+// Note: For admin, we default status to empty to show ALL products unless filtered.
+// But get_all_products defaults to 'active'.
+// If $status_filter is empty, we pass 'all' or similar? 
+// No, the function logic is: if status == 'active' -> is_active=1, if 'draft' -> is_active=0. 
+// If I pass '', it falls through and shows all.
+// So:
+$status_param = $status_filter;
+if ($status_filter === '') {
+    // If no filter selected, we want ALL products.
+    // My function implementation:
+    // if ($status === 'active') ... elseif ($status === 'draft') ...
+    // So if I pass '', it adds NO clause for is_active. Correct.
+    $status_param = ''; 
+}
+
+$result = get_all_products($pdo, $page, ADMIN_PER_PAGE, $search, $category_filter, $min_price, $max_price, $status_param, $stock_filter);
 $products = $result['products'];
 $total_pages = $result['total_pages'];
 $current_page = $result['current_page'];
 $total_products = $result['total_items'];
+
+// Fetch categories for filter dropdown
+$stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
+$categories_list = $stmt->fetchAll();
 
 // Handle delete action
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
@@ -70,25 +94,64 @@ include '../includes/sidebar.php';
 <!-- Search and Filter -->
 <div class="table-container mb-4">
     <div class="p-3">
-        <form method="GET" class="row g-3 align-items-end">
-            <div class="col-md-6">
-                <label class="form-label">Search Products</label>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Product name..." 
+                       value="<?php echo htmlspecialchars($search); ?>">
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    <?php foreach ($categories_list as $cat): ?>
+                    <option value="<?php echo $cat['slug']; ?>" <?php echo $category_filter === $cat['slug'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($cat['name']); ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="active" <?php echo $status_filter === 'active' ? 'selected' : ''; ?>>Active</option>
+                    <option value="draft" <?php echo $status_filter === 'draft' ? 'selected' : ''; ?>>Draft</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Stock</label>
+                <select name="stock" class="form-select">
+                    <option value="">All Stock</option>
+                    <option value="instock" <?php echo $stock_filter === 'instock' ? 'selected' : ''; ?>>In Stock</option>
+                    <option value="lowstock" <?php echo $stock_filter === 'lowstock' ? 'selected' : ''; ?>>Low Stock (<=5)</option>
+                    <option value="outofstock" <?php echo $stock_filter === 'outofstock' ? 'selected' : ''; ?>>Out of Stock</option>
+                </select>
+            </div>
+            
+             <div class="col-md-3">
+                <label class="form-label">Price Range</label>
                 <div class="input-group">
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Search by name or description..." 
-                           value="<?php echo htmlspecialchars($search); ?>">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i>
-                    </button>
+                    <input type="number" name="min_price" class="form-control" placeholder="Min" value="<?php echo $min_price ?: ''; ?>">
+                    <span class="input-group-text">-</span>
+                    <input type="number" name="max_price" class="form-control" placeholder="Max" value="<?php echo $max_price ?: ''; ?>">
                 </div>
             </div>
-            <div class="col-md-6 text-md-end">
-                <?php if ($search): ?>
+
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-filter me-1"></i>Apply Filters
+                </button>
+                 <?php if ($search || $category_filter || $status_filter || $stock_filter || $min_price || $max_price): ?>
                 <a href="index.php" class="btn btn-outline-light">
-                    <i class="bi bi-x-lg me-2"></i>Clear Search
+                    <i class="bi bi-x-lg me-1"></i>Clear
                 </a>
                 <?php endif; ?>
-                <span class="ms-3 text-muted"><?php echo $total_products; ?> products found</span>
+                 <div class="mt-2 text-muted small"><?php echo $total_products; ?> products found</div>
             </div>
         </form>
     </div>
@@ -112,7 +175,7 @@ include '../includes/sidebar.php';
             <tbody>
                 <?php if (empty($products)): ?>
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="7" class="text-center py-5 text-muted">
                         <i class="bi bi-box-seam fs-1 d-block mb-3"></i>
                         No products found
                     </td>
@@ -189,7 +252,7 @@ include '../includes/sidebar.php';
             <ul class="pagination pagination-sm mb-0">
                 <?php if ($current_page > 1): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $current_page - 1; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $current_page - 1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo urlencode($category_filter); ?>&status=<?php echo urlencode($status_filter); ?>&stock=<?php echo urlencode($stock_filter); ?>&min_price=<?php echo $min_price; ?>&max_price=<?php echo $max_price; ?>">
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 </li>
@@ -201,7 +264,7 @@ include '../includes/sidebar.php';
                 for ($i = $start; $i <= $end; $i++): 
                 ?>
                 <li class="page-item <?php echo $i == $current_page ? 'active' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo urlencode($category_filter); ?>&status=<?php echo urlencode($status_filter); ?>&stock=<?php echo urlencode($stock_filter); ?>&min_price=<?php echo $min_price; ?>&max_price=<?php echo $max_price; ?>">
                         <?php echo $i; ?>
                     </a>
                 </li>
@@ -209,7 +272,7 @@ include '../includes/sidebar.php';
                 
                 <?php if ($current_page < $total_pages): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $current_page + 1; ?>&search=<?php echo urlencode($search); ?>">
+                    <a class="page-link" href="?page=<?php echo $current_page + 1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo urlencode($category_filter); ?>&status=<?php echo urlencode($status_filter); ?>&stock=<?php echo urlencode($stock_filter); ?>&min_price=<?php echo $min_price; ?>&max_price=<?php echo $max_price; ?>">
                         <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>

@@ -14,26 +14,45 @@
             Dashboard
         </a>
         
+        <?php if (check_permission('admin')): ?>
         <div class="nav-section-title">Management</div>
-        
         <a href="<?php echo SITE_URL; ?>/backend/users/index.php" 
            class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'users') !== false ? 'active' : ''; ?>">
             <i class="bi bi-people"></i>
             User Management
         </a>
+        <?php endif; ?>
         
-        <div class="nav-section-title">Store</div>
+        <?php if (check_permission('admin') || check_permission('warehouse_manager')): ?>
+        <div class="nav-section-title">Store Management</div>
         
         <a href="<?php echo SITE_URL; ?>/backend/products/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'products') !== false ? 'active' : ''; ?>">
             <i class="bi bi-box-seam"></i>
             Products
         </a>
         
+        <a href="<?php echo SITE_URL; ?>/backend/inventory/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'inventory') !== false ? 'active' : ''; ?>">
+            <i class="bi bi-boxes"></i>
+            Inventory
+        </a>
+        
+        <a href="<?php echo SITE_URL; ?>/backend/shipping/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'shipping') !== false ? 'active' : ''; ?>">
+            <i class="bi bi-truck"></i>
+            Shipping
+        </a>
+        
+        <a href="<?php echo SITE_URL; ?>/backend/returns/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'returns') !== false ? 'active' : ''; ?>">
+            <i class="bi bi-arrow-return-left"></i>
+            Returns
+        </a>
+
         <a href="<?php echo SITE_URL; ?>/backend/categories/index.php" class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], 'categories') !== false ? 'active' : ''; ?>">
             <i class="bi bi-tags"></i>
             Categories
         </a>
+        <?php endif; ?>
 
+        <?php if (check_permission('admin') || check_permission('sales_manager')): ?>
         <a class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], '/orders/') !== false ? 'active' : ''; ?>" 
            href="<?php echo SITE_URL; ?>/backend/orders/index.php">
             <i class="bi bi-cart"></i>
@@ -46,11 +65,20 @@
             Coupons
         </a>
         
+        <a class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], '/reports/') !== false ? 'active' : ''; ?>" 
+           href="<?php echo SITE_URL; ?>/backend/reports/index.php">
+            <i class="bi bi-graph-up"></i>
+            Reports
+        </a>
+        <?php endif; ?>
+        
+        <?php if (check_permission('admin') || check_permission('editor')): ?>
         <a class="nav-link <?php echo strpos($_SERVER['PHP_SELF'], '/blog/') !== false ? 'active' : ''; ?>" 
            href="<?php echo SITE_URL; ?>/backend/blog/index.php">
             <i class="bi bi-journal-text"></i>
             Blog Management
         </a>
+        <?php endif; ?>
         
         <div class="nav-section-title">Other</div>
         
@@ -64,6 +92,14 @@
             Logout
         </a>
     </div>
+    
+    <?php if (is_admin()): ?>
+    <div class="mt-auto p-3 border-top border-secondary">
+        <a href="<?php echo SITE_URL; ?>/backend/settings/index.php" class="nav-link text-muted small">
+            <i class="bi bi-gear me-2"></i>System Settings
+        </a>
+    </div>
+    <?php endif; ?>
 </nav>
 
 <!-- Main Content Wrapper -->

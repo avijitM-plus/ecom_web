@@ -67,6 +67,11 @@ include 'includes/header.php';
                         <h3 class="font-semibold">Shopping Cart</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">View items in your cart</p>
                     </a>
+                    <a href="returns.php" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
+                        <i class="fas fa-undo text-electric text-2xl mb-2"></i>
+                        <h3 class="font-semibold">Return Center</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Manage your returns and exchanges</p>
+                    </a>
                     <a href="#" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-electric transition">
                         <i class="fas fa-heart text-electric text-2xl mb-2"></i>
                         <h3 class="font-semibold">Wishlist</h3>

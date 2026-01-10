@@ -142,8 +142,13 @@ include 'includes/header.php';
                     <!-- Password Input -->
                     <div>
                         <label class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Password</label>
-                        <input type="password" name="password" id="password" placeholder="••••••••" required
-                               class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white form-input">
+                        <div class="relative">
+                            <input type="password" name="password" id="password" placeholder="••••••••" required
+                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white form-input pr-12">
+                            <button type="button" onclick="togglePassword('password', 'toggleIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                                <i id="toggleIcon1" class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         <div class="mt-2 flex space-x-1">
                             <div class="password-strength" id="passwordStrength"></div>
                         </div>
@@ -153,8 +158,13 @@ include 'includes/header.php';
                     <!-- Confirm Password Input -->
                     <div>
                         <label class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Confirm Password</label>
-                        <input type="password" name="confirm_password" placeholder="••••••••" required
-                               class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white form-input">
+                        <div class="relative">
+                            <input type="password" name="confirm_password" id="confirm_password" placeholder="••••••••" required
+                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white form-input pr-12">
+                            <button type="button" onclick="togglePassword('confirm_password', 'toggleIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                                <i id="toggleIcon2" class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Terms & Privacy -->
@@ -249,4 +259,20 @@ include 'includes/header.php';
             strengthHint.textContent = hint;
         });
 
-    <?php include 'includes/footer.php'; ?>
+        // Toggle password visibility
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+
+<?php include 'includes/footer.php'; ?>

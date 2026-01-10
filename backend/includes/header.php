@@ -36,6 +36,9 @@
             border-right: 1px solid rgba(255,255,255,0.1);
             z-index: 1000;
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
         .sidebar-brand {
@@ -54,6 +57,23 @@
         
         .sidebar-nav {
             padding: 1rem 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        /* Custom Scrollbar for Sidebar */
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.02);
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2);
         }
         
         .nav-link {

@@ -42,13 +42,15 @@ $posts = $stmt->fetchAll();
                             <th>ID</th>
                             <th style="width: 100px;">Image</th>
                             <th>Title</th>
+                            <th>Status</th>
+                            <th>Category</th>
                             <th>Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($posts)): ?>
-                            <tr><td colspan="5" class="text-center py-4">No posts found.</td></tr>
+                            <tr><td colspan="7" class="text-center py-4">No posts found.</td></tr>
                         <?php else: ?>
                             <?php foreach ($posts as $post): ?>
                             <tr>
@@ -65,6 +67,20 @@ $posts = $stmt->fetchAll();
                                         <?php echo htmlspecialchars($post['title']); ?>
                                     </div>
                                     <small class="text-muted">/<?php echo htmlspecialchars($post['slug']); ?></small>
+                                </td>
+                                <td>
+                                    <?php if (($post['status'] ?? 'published') === 'published'): ?>
+                                        <span class="badge bg-success">Published</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Draft</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($post['category'])): ?>
+                                        <span class="badge bg-info text-dark"><?php echo htmlspecialchars($post['category']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted small">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td><?php echo date('M d, Y', strtotime($post['created_at'])); ?></td>
                                 <td>

@@ -94,6 +94,11 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
             <div class="h-64 md:h-96 w-full relative">
                 <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="w-full h-full object-cover">
                 <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-8">
+                    <?php if (!empty($post['category'])): ?>
+                        <span class="inline-block bg-electric text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-3">
+                            <?php echo htmlspecialchars($post['category']); ?>
+                        </span>
+                    <?php endif; ?>
                     <h1 class="text-3xl md:text-5xl font-bold text-white mb-2"><?php echo htmlspecialchars($post['title']); ?></h1>
                     <div class="text-gray-300 text-sm">
                         <i class="far fa-calendar-alt mr-2"></i> <?php echo date('F d, Y', strtotime($post['created_at'])); ?>
@@ -101,8 +106,8 @@ $user_name = $is_logged_in ? $_SESSION['full_name'] : '';
                 </div>
             </div>
             
-            <div class="p-8 md:p-12 text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                <?php echo nl2br(htmlspecialchars($post['content'])); ?>
+            <div class="p-8 md:p-12 text-lg text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert max-w-none">
+                <?php echo $post['content']; // Outputting raw HTML from TinyMCE ?>
             </div>
             
             <div class="bg-gray-50 dark:bg-gray-900 p-8 border-t border-gray-200 dark:border-gray-700">

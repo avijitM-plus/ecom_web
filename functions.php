@@ -116,7 +116,7 @@ function redirect($url) {
  */
 function require_login() {
     if (!is_logged_in()) {
-        redirect('login.php');
+        redirect(SITE_URL . '/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     }
 }
 
@@ -168,27 +168,39 @@ function is_admin() {
  */
 function require_admin() {
     if (!is_logged_in()) {
-        redirect('../login.php?error=Please login to access admin panel');
+        redirect(SITE_URL . '/login.php?error=Please login to access admin panel');
     }
     if (!is_admin()) {
-        redirect('../login.php?error=Access denied. Admin privileges required.');
+        redirect(SITE_URL . '/login.php?error=Access denied. Admin privileges required.');
     }
 }
 
 /**
  * Get all users with pagination
  */
-function get_all_users($pdo, $page = 1, $per_page = 10, $search = '') {
+function get_all_users($pdo, $page = 1, $per_page = 10, $search = '', $role = '', $status = '') {
     $offset = ($page - 1) * $per_page;
     
-    $where = '';
+    $where_clauses = [];
     $params = [];
     
     if (!empty($search)) {
-        $where = "WHERE full_name LIKE ? OR email LIKE ?";
-        $search_term = "%{$search}%";
-        $params = [$search_term, $search_term];
+        $where_clauses[] = "(full_name LIKE ? OR email LIKE ?)";
+        $params[] = "%{$search}%";
+        $params[] = "%{$search}%";
     }
+
+    if (!empty($role)) {
+        $where_clauses[] = "role = ?";
+        $params[] = $role;
+    }
+
+    if ($status !== '') {
+        $where_clauses[] = "is_active = ?";
+        $params[] = $status;
+    }
+    
+    $where = !empty($where_clauses) ? 'WHERE ' . implode(' AND ', $where_clauses) : '';
     
     // Get total count
     $count_sql = "SELECT COUNT(*) FROM users {$where}";
@@ -363,38 +375,55 @@ function get_recent_users($pdo, $limit = 5) {
 /**
  * Get all products with pagination and filters
  */
-function get_all_products($pdo, $page = 1, $per_page = 12, $search = '', $category_slug = '', $min_price = 0, $max_price = 0) {
+function get_all_products($pdo, $page = 1, $per_page = 12, $search = '', $category_slug = '', $min_price = 0, $max_price = 0, $status = 'active', $stock_status = '') {
     $offset = ($page - 1) * $per_page;
     $params = [];
     
-    // Base Condition
-    $where = "WHERE p.is_active = 1";
-    $joins = "";
+    $where_clauses = [];
+    
+    // Status Filter
+    if ($status === 'active') {
+        $where_clauses[] = "p.is_active = 1";
+    } elseif ($status === 'draft') {
+        $where_clauses[] = "p.is_active = 0";
+    }
     
     // Search
     if ($search) {
-        $where .= " AND (p.name LIKE ? OR p.description LIKE ?)";
+        $where_clauses[] = "(p.name LIKE ? OR p.description LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
     }
     
+    $joins = "";
     // Category Filter (Using Pivot Table)
     if ($category_slug) {
         $joins .= " JOIN product_categories pc ON p.id = pc.product_id 
                     JOIN categories c ON pc.category_id = c.id";
-        $where .= " AND c.slug = ?";
+        $where_clauses[] = "c.slug = ?";
         $params[] = $category_slug;
     }
     
     // Price Filter
     if ($max_price > 0) {
-        $where .= " AND p.price BETWEEN ? AND ?";
+        $where_clauses[] = "p.price BETWEEN ? AND ?";
         $params[] = $min_price;
         $params[] = $max_price;
     } elseif ($min_price > 0) {
-        $where .= " AND p.price >= ?";
+        $where_clauses[] = "p.price >= ?";
         $params[] = $min_price;
     }
+
+    // Stock Filter
+    if ($stock_status === 'instock') {
+        $where_clauses[] = "p.stock > 0";
+    } elseif ($stock_status === 'outofstock') {
+        $where_clauses[] = "p.stock = 0";
+    } elseif ($stock_status === 'lowstock') {
+        $where_clauses[] = "p.stock <= 5 AND p.stock > 0";
+    }
+    
+    $where = !empty($where_clauses) ? 'WHERE ' . implode(' AND ', $where_clauses) : '';
     
     // Count Query
     $count_sql = "SELECT COUNT(DISTINCT p.id) FROM products p $joins $where";
@@ -604,7 +633,7 @@ function get_featured_products($pdo, $limit = 4) {
  */
 function get_recent_posts($pdo, $limit = 3) {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT ?");
+        $stmt = $pdo->prepare("SELECT * FROM blog_posts WHERE status = 'published' ORDER BY created_at DESC LIMIT ?");
         $stmt->bindValue(1, $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -789,3 +818,189 @@ function update_user_address($pdo, $user_id, $phone, $address, $city, $postal_co
 }
 
 
+
+/**
+ * System Settings Functions
+ */
+function get_setting($pdo, $key) {
+    static $settings_cache = [];
+    
+    if (isset($settings_cache[$key])) {
+        return $settings_cache[$key];
+    }
+    
+    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
+    $stmt->execute([$key]);
+    $value = $stmt->fetchColumn();
+    
+    $settings_cache[$key] = $value;
+    return $value;
+}
+
+function update_setting($pdo, $key, $value, $group = 'general') {
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO system_settings (setting_key, setting_value, group_name) 
+            VALUES (?, ?, ?) 
+            ON DUPLICATE KEY UPDATE setting_value = ?, group_name = ?
+        ");
+        $stmt->execute([$key, $value, $group, $value, $group]);
+        return ['success' => true, 'message' => 'Setting updated'];
+    } catch (PDOException $e) {
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
+
+/**
+ * Check User Permission
+ */
+function check_permission($required_role) {
+    if (!is_logged_in()) return false;
+    
+    $user_role = $_SESSION['role'];
+    
+    // Admin has access to everything
+    if ($user_role === 'admin') return true;
+    
+    // Define role hierarchy or specific permissions
+    $permissions = [
+        'editor' => ['blog_management', 'banner_management'],
+        'sales_manager' => ['order_management', 'reports_access'],
+        'warehouse_manager' => ['inventory_management', 'shipping_management', 'returns_management']
+    ];
+    
+    // For now simple role check
+    return $user_role === $required_role;
+}
+
+/**
+ * Inventory Management Functions
+ */
+function log_inventory_change($pdo, $product_id, $user_id, $change, $reason) {
+    try {
+        // Record log
+        $stmt = $pdo->prepare("INSERT INTO inventory_logs (product_id, user_id, quantity_change, reason) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$product_id, $user_id, $change, $reason]);
+        
+        // Update Actual Product Stock
+        $stmt = $pdo->prepare("UPDATE products SET stock = stock + ? WHERE id = ?");
+        $stmt->execute([$change, $product_id]);
+        
+        return true;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function get_inventory_logs($pdo, $product_id = null, $limit = 20) {
+    $sql = "
+        SELECT l.*, p.name as product_name, u.full_name as user_name 
+        FROM inventory_logs l 
+        JOIN products p ON l.product_id = p.id 
+        JOIN users u ON l.user_id = u.id 
+    ";
+    
+    $params = [];
+    if ($product_id) {
+        $sql .= " WHERE l.product_id = ?";
+        $params[] = $product_id;
+    }
+    
+    $sql .= " ORDER BY l.created_at DESC LIMIT " . (int)$limit;
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+/**
+ * Calculate Shipping Cost
+ */
+function calculate_shipping_cost($pdo, $country_code, $weight = 0) {
+    // 1. Check for specific zone match
+    $stmt = $pdo->prepare("SELECT * FROM shipping_zones WHERE countries LIKE ?");
+    $stmt->execute(['%"' . $country_code . '"%']);
+    $zone = $stmt->fetch();
+    
+    if (!$zone) {
+        // Check for 'Global' zone (empty countries list or explicit global flag if we had one)
+        // For now, if no zone, maybe return flat rate from settings
+        $flat_rate = get_setting($pdo, 'shipping_flat_rate');
+        return $flat_rate ? (float)$flat_rate : 0.00;
+    }
+    
+    // 2. Find matching rate in zone
+    // Rates are often weight based. If weight is 0, we might just take the first rate or lowest.
+    // Assuming simple flat rate per zone if weight is 0
+    $stmt = $pdo->prepare("SELECT cost FROM shipping_rates WHERE zone_id = ? AND (? BETWEEN min_weight AND IFNULL(max_weight, 99999)) LIMIT 1");
+    $stmt->execute([$zone['id'], $weight]);
+    $rate = $stmt->fetchColumn();
+    
+    if ($rate !== false) {
+        return (float)$rate;
+    }
+    
+    // Fallback if no specific weight matches
+    $flat_rate = get_setting($pdo, 'shipping_flat_rate');
+    return $flat_rate ? (float)$flat_rate : 0.00;
+}
+
+/**
+ * Calculate Tax
+ */
+function calculate_tax($pdo, $amount) {
+    if ($amount <= 0) return 0;
+    
+    $tax_rate = get_setting($pdo, 'tax_rate');
+    $tax_rate = $tax_rate ? (float)$tax_rate : 0;
+    
+    return $amount * ($tax_rate / 100);
+}
+
+/**
+ * Get Country List
+ */
+function get_countries() {
+    return [
+        'BD' => 'Bangladesh',
+        'US' => 'United States',
+        'GB' => 'United Kingdom',
+        'CA' => 'Canada',
+        'AU' => 'Australia',
+        'IN' => 'India',
+        'DE' => 'Germany',
+        'FR' => 'France',
+        'JP' => 'Japan',
+        'CN' => 'China',
+        'AE' => 'United Arab Emirates'
+    ];
+}
+
+/**
+ * Get Shipping Zones with Calculated Cost
+ */
+function get_shipping_zones_with_cost($pdo, $weight) {
+    $zones = $pdo->query("SELECT * FROM shipping_zones ORDER BY zone_name")->fetchAll();
+    $results = [];
+    
+    foreach ($zones as $zone) {
+        // Find rate for weight
+        // Added ORDER BY cost DESC to pick the most specific/highest rate in case of overlapped ranges
+        $stmt = $pdo->prepare("SELECT cost FROM shipping_rates WHERE zone_id = ? AND (? BETWEEN min_weight AND IFNULL(max_weight, 99999)) ORDER BY min_weight DESC LIMIT 1");
+        $stmt->execute([$zone['id'], $weight]);
+        $cost = $stmt->fetchColumn();
+        
+        // If no rate found for this weight, check if 'flat rate' fallback is desired or skip
+        // For now, we only include zones that have a valid rate for this cart
+        if ($cost !== false) {
+            $zone['cost'] = (float)$cost;
+            $results[] = $zone;
+        }
+    }
+    
+    // Always add a "Standard" or "Flat Rate" option if defined in settings and no zones matched?
+    // User requested "Flat Rate Shipping Cost", so if zones are empty, maybe fallback?
+    // But user wants to SELECT zone. So likely zones exist.
+    
+    return $results;
+}

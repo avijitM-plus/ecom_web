@@ -109,6 +109,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
             input:checked + .slider:before { transform: translateX(30px); }
         }
     </style>
+    <script>
+        // Immediate Dark Mode Initialization
+        (function() {
+            const stored = localStorage.getItem('darkMode');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = stored === 'true' || (stored === null && prefersDark);
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
 </head>
 <body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition duration-300">
     <!-- Header -->
