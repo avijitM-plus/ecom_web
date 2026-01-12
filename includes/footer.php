@@ -55,15 +55,15 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Customer Service</h3>
                     <ul class="space-y-2">
-                        <li><a href="contact.html"
+                        <li><a href="contact.php"
                                 class="text-gray-400 hover:text-white transition duration-300">Contact Us</a>
                         </li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Shipping
+                        <li><a href="terms.php" class="text-gray-400 hover:text-white transition duration-300">Shipping
                                 Policy</a></li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">Return
+                        <li><a href="terms.php" class="text-gray-400 hover:text-white transition duration-300">Return
                                 Policy</a>
                         </li>
-                        <li><a href="terms.html" class="text-gray-400 hover:text-white transition duration-300">FAQ</a>
+                        <li><a href="terms.php" class="text-gray-400 hover:text-white transition duration-300">FAQ</a>
                         </li>
                         <li><a href="orders.php" class="text-gray-400 hover:text-white transition duration-300">Track
                                 Your
