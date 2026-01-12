@@ -161,22 +161,22 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <a href="index.php" class="text-gray-700 dark:text-gray-300 hover:text-electric">Back to Home</a>
                     </div>
                 <?php else: ?>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-4 md:space-x-6">
                     <!-- Dark Mode Toggle -->
-                    <label class="dark-mode-toggle">
+                    <label class="dark-mode-toggle scale-75 md:scale-100">
                         <input type="checkbox" id="darkModeToggle">
                         <span class="slider"></span>
                     </label>
 
-                    <div class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
+                    <div class="flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
                         <i class="far fa-user text-lg"></i>
                         <?php if ($is_logged_in): ?>
-                            <span class="font-medium"><a href="account.php">Hi, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?></a></span>
+                            <span class="font-medium hidden md:inline"><a href="account.php">Hi, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?></a></span>
                         <?php else: ?>
-                            <span class="font-medium"><a href="login.php">Account</a></span>
+                            <span class="font-medium hidden md:inline"><a href="login.php">Account</a></span>
                         <?php endif; ?>
                     </div>
-                    <a href="wishlist.php" class="hidden md:flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
+                    <a href="wishlist.php" class="flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer dark:text-gray-300 dark:hover:text-electric">
                          <!-- Actually wishlist.php page doesn't exist? Use Products or Account? Or wishlist_action with no post? 
                               User said wishlist works now. But where is the page? 
                               Maybe account.php has wishlist tab?
@@ -186,16 +186,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
                               I'll point to account.php as safe bet.
                           -->
                         <i class="far fa-heart text-lg"></i>
-                        <span class="font-medium">Wishlist</span>
+                        <span class="font-medium hidden md:inline">Wishlist</span>
                     </a>
                     <a href="cart.php" class="flex items-center space-x-1 text-gray-700 hover:text-electric cursor-pointer relative dark:text-gray-300 dark:hover:text-electric">
                         <i class="fas fa-shopping-cart text-lg"></i>
-                        <span class="font-medium">Cart</span>
+                        <span class="font-medium hidden md:inline">Cart</span>
                         <?php if ($cart_count > 0): ?>
-                        <span class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"><?php echo $cart_count; ?></span>
+                        <span class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center"><?php echo $cart_count; ?></span>
                         <?php endif; ?>
                     </a>
-                    <button id="mobileMenuButton" class="md:hidden text-gray-700 dark:text-gray-300">
+                    <button id="mobileMenuButton" class="md:hidden text-gray-700 dark:text-gray-300 ml-2">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>

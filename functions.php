@@ -1108,3 +1108,160 @@ function get_shipping_zones_with_cost($pdo, $weight) {
     
     return $results;
 }
+
+/**
+ * Send Order Invoice Email using PHPMailer
+ */
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+function send_order_invoice($pdo, $order_id) {
+    // Ensure Composer autoloader is loaded
+    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+        require_once __DIR__ . '/vendor/autoload.php';
+    }
+
+    try {
+        // 1. Fetch Order Details
+        $stmt = $pdo->prepare("
+            SELECT o.*, u.full_name, u.email 
+            FROM orders o 
+            JOIN users u ON o.user_id = u.id 
+            WHERE o.id = ?
+        ");
+        $stmt->execute([$order_id]);
+        $order = $stmt->fetch();
+        
+        if (!$order) return false;
+        
+        // 2. Fetch Order Items
+        $stmt = $pdo->prepare("
+            SELECT oi.*, p.name 
+            FROM order_items oi 
+            JOIN products p ON oi.product_id = p.id 
+            WHERE oi.order_id = ?
+        ");
+        $stmt->execute([$order_id]);
+        $items = $stmt->fetchAll();
+        
+        // 3. Construct Email Body
+        $subject = "RoboMart Order Invoice #" . str_pad($order_id, 6, '0', STR_PAD_LEFT);
+        
+        $message = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; }
+                .header { background-color: #2563EB; color: #fff; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                .order-info { margin: 20px 0; background: #f9f9f9; padding: 15px; border-radius: 5px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+                th { background-color: #f8f8f8; }
+                .total-row td { font-weight: bold; font-size: 1.1em; }
+                .footer { margin-top: 30px; text-align: center; font-size: 0.9em; color: #777; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Thank You for Your Order!</h1>
+                </div>
+                
+                <p>Hi ' . htmlspecialchars(explode(' ', $order['full_name'])[0]) . ',</p>
+                <p>Your order has been confirmed successfully. Here are your order details:</p>
+                
+                <div class="order-info">
+                    <p><strong>Order ID:</strong> #' . str_pad($order_id, 6, '0', STR_PAD_LEFT) . '</p>
+                    <p><strong>Order Date:</strong> ' . date('F j, Y, g:i a') . '</p>
+                    <p><strong>Shipping Address:</strong><br>' . nl2br(htmlspecialchars($order['shipping_address'])) . '</p>
+                    <p><strong>Payment Method:</strong> ' . ucfirst($order['payment_method']) . '</p>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+        
+        foreach ($items as $item) {
+            $message .= '
+            <tr>
+                <td>' . htmlspecialchars($item['name']) . '</td>
+                <td>' . $item['quantity'] . '</td>
+                <td>' . number_format($item['price'], 2) . 'TK</td>
+                <td>' . number_format($item['quantity'] * $item['price'], 2) . 'TK</td>
+            </tr>';
+        }
+        
+        $message .= '
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align:right"><strong>Subtotal:</strong></td>
+                    <td>' . number_format($order['total_amount'] + $order['discount_amount'], 2) . 'TK</td>
+                </tr>';
+                
+        if ($order['discount_amount'] > 0) {
+            $message .= '
+            <tr>
+                <td colspan="3" style="text-align:right; color: green;"><strong>Discount:</strong></td>
+                <td style="color: green;">-৳' . number_format($order['discount_amount'], 2) . '</td>
+            </tr>';
+        }
+        
+        $message .= '
+                <tr class="total-row">
+                    <td colspan="3" style="text-align:right">Total:</td>
+                    <td style="color: #2563EB;">৳' . number_format($order['total_amount'], 2) . '</td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <p style="margin-top: 30px;">We will notify you once your package is shipped.</p>
+        
+        <div class="footer">
+            <p>&copy; ' . date('Y') . ' RoboMart. All rights reserved.</p>
+            <p>Questions? Contact us at support@robomart.com</p>
+        </div>
+            </div>
+        </body>
+        </html>';
+        
+        // 4. Send Email via PHPMailer
+        $mail = new PHPMailer(true);
+        
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = defined('SMTP_USER') ? SMTP_USER : '';
+        $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : '';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = defined('SMTP_PORT') ? SMTP_PORT : 587;
+        
+        // Recipients
+        $mail->setFrom(defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@robomart.com', defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'RoboMart');
+        $mail->addAddress($order['email'], $order['full_name']);
+        
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $message;
+        $mail->AltBody = strip_tags($message);
+        
+        $mail->send();
+        return true;
+        
+    } catch (Exception $e) {
+        // Log error silently
+        error_log("Failed to send invoice email (PHPMailer): " . $e->getMessage());
+        return false;
+    }
+}

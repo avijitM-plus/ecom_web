@@ -16,6 +16,7 @@ $cart_details = get_cart_details($pdo);
 $cart_items = $cart_details['items'];
 $subtotal = $cart_details['subtotal'];
 
+
 // Get user details for auto-fill
 $user = get_user_by_id($pdo, $_SESSION['user_id']);
 
@@ -131,6 +132,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) { // 
         }
         
         $pdo->commit();
+        
+        // 4. Send Invoice Email
+        send_order_invoice($pdo, $order_id);
+        
         clear_cart();
         header('Location: orders.php?success=1');
         exit;

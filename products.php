@@ -55,11 +55,20 @@ include 'includes/header.php';
         </div>
         <?php endif; ?>
         
-        <div class="flex flex-col md:flex-row gap-8">
+        <div class="flex flex-col md:flex-row gap-8 relative">
+            <!-- Mobile Filter Toggle -->
+            <button id="filterToggle" class="md:hidden w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-white px-4 py-3 rounded-xl shadow-sm mb-4 flex items-center justify-between font-semibold">
+                <span><i class="fas fa-filter mr-2 text-electric"></i>Filters</span>
+                <i class="fas fa-chevron-down transform transition-transform duration-200" id="filterArrow"></i>
+            </button>
+
             <!-- Sidebar Filters -->
-            <aside class="w-full md:w-1/4 h-fit">
+            <aside id="filtersSidebar" class="hidden md:block w-full md:w-1/4 h-fit md:sticky md:top-24 transition-all duration-300">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-white"><i class="fas fa-filter mr-2"></i>Filters</h3>
+                    <div class="flex justify-between items-center md:hidden mb-4">
+                        <h3 class="font-bold text-lg text-gray-800 dark:text-white">Filters</h3>
+                    </div>
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-white hidden md:block"><i class="fas fa-filter mr-2"></i>Filters</h3>
                     
                     <!-- Categories -->
                     <div class="mb-6">
@@ -224,3 +233,17 @@ include 'includes/header.php';
         </div>
     </main>
     <?php include 'includes/footer.php'; ?>
+    
+    <script>
+        // Toggle Filters on Mobile
+        const filterToggle = document.getElementById('filterToggle');
+        const filtersSidebar = document.getElementById('filtersSidebar');
+        const filterArrow = document.getElementById('filterArrow');
+
+        if (filterToggle && filtersSidebar) {
+            filterToggle.addEventListener('click', () => {
+                filtersSidebar.classList.toggle('hidden');
+                filterArrow.classList.toggle('rotate-180');
+            });
+        }
+    </script>

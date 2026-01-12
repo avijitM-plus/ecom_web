@@ -40,7 +40,7 @@ $page_title = $product ? htmlspecialchars($product['name']) : 'Product Not Found
 include 'includes/header.php';
 ?>
 
-    <main class="container mx-auto px-4 py-12">
+    <main class="container mx-auto px-4 py-6 md:py-12">
         <?php if ($product): ?>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden p-4 flex items-center justify-center">

@@ -7,7 +7,7 @@
 ### for Shoppers:
 *   **Dynamic Storefront**: Featured products, new arrivals, and latest tech news.
 *   **Advanced Product Catalog**: Filter by Category, Price Range, and search capabilities.
-*   **User Accounts**: Secure Registration, Login, Profile Management, and Order History.
+*   **User Accounts**: Secure Registration, Login (including Google OAuth), Profile Management, and Order History.
 *   **Shopping Experience**: Real-time Cart, Wishlist, and streamlined Checkout process (Credit Card/COD).
 *   **Responsive Design**: Optimized for mobile and desktop using Tailwind CSS.
 
@@ -43,9 +43,17 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'robomart_db');
-```
+### 3. Google Login Setup (Optional)
+To enable "Sign in with Google":
+1.  Obtain OAuth 2.0 Client ID and Secret from Google Cloud Console.
+2.  Add `http://localhost:8000/google-callback.php` to authorized redirect URIs.
+3.  Update `includes/google-config.php` with your credentials:
+    ```php
+    $google_client->setClientId('YOUR_CLIENT_ID');
+    $google_client->setClientSecret('YOUR_CLIENT_SECRET');
+    ```
 
-### 3. Run the Server
+### 4. Run the Server
 Use the PHP built-in server for development:
 ```bash
 php -S localhost:8000

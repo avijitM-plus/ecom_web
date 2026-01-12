@@ -18,13 +18,14 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255),
+    password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+    google_id VARCHAR(255) NULL UNIQUE,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
+    INDEX idx_google_id (google_id),
     INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -244,12 +245,12 @@ CREATE TABLE IF NOT EXISTS inventory_log (
 
 -- Insert default admin user (password: password123)
 -- Password hash generated with password_hash('password123', PASSWORD_DEFAULT)
-INSERT INTO users (full_name, email, password, role, is_active) VALUES 
+INSERT INTO users (full_name, email, password_hash, role, is_active) VALUES 
 ('Admin User', 'admin@robomart.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1)
 ON DUPLICATE KEY UPDATE role = 'admin';
 
 -- Insert default test user (password: password123)
-INSERT INTO users (full_name, email, password, role, is_active) VALUES 
+INSERT INTO users (full_name, email, password_hash, role, is_active) VALUES 
 ('Test User', 'user@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 1)
 ON DUPLICATE KEY UPDATE full_name = 'Test User';
 
@@ -282,3 +283,6 @@ ON DUPLICATE KEY UPDATE value = 15.00;
 
 -- Add is_active column to products if not exists
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS is_active TINYINT(1) DEFAULT 1;
+
+-- Add google_id column to users if not exists (for Google Login)
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) NULL UNIQUE AFTER email;

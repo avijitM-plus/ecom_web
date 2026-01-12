@@ -5,6 +5,7 @@
  */
 
 require_once 'config.php';
+require_once 'includes/google-config.php';
 
 $error = '';
 
@@ -145,13 +146,11 @@ include 'includes/header.php';
                 </div>
 
                 <!-- Social Login -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <div class="grid grid-cols-1 gap-4">
+                    <a href="<?php echo $google_client->createAuthUrl(); ?>" class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                         <i class="fab fa-google text-lg text-red-500"></i>
-                    </button>
-                    <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                        <i class="fab fa-github text-lg text-gray-800 dark:text-white"></i>
-                    </button>
+                    </a>
+
                 </div>
 
                 <!-- Sign Up Link -->

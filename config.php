@@ -21,7 +21,17 @@ define('SITE_NAME', 'RoboMart');
 
 // Security settings
 define('PASSWORD_MIN_LENGTH', 8);
+// 1 hour in seconds
+
 define('SESSION_LIFETIME', 3600); // 1 hour in seconds
+
+// SMTP Configuration (Gmail)
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587); // TLS
+define('SMTP_USER', 'avijit2019mondal@gmail.com');
+define('SMTP_PASS', 'bpph sysr yaqk pqfq'); // App Password (16 chars)
+define('SMTP_FROM_EMAIL', 'noreply@robomart.com');
+define('SMTP_FROM_NAME', 'RoboMart');
 
 // Create database connection using PDO
 try {
