@@ -19,9 +19,17 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL DEFAULT NULL,  -- Legacy column, kept for compatibility
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
     google_id VARCHAR(255) NULL UNIQUE,
-    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    is_active TINYINT(1) NOT NULL DEFAULT 0,  -- Default 0: requires email verification
+    verification_code VARCHAR(6) NULL,
+    verification_expires_at TIMESTAMP NULL,
+    phone VARCHAR(20) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(100) NULL,
+    postal_code VARCHAR(20) NULL,
+    country VARCHAR(100) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),

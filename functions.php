@@ -1,4 +1,6 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 /**
  * Utility Functions for RoboMart
  * Authentication and Helper Functions
@@ -1112,8 +1114,6 @@ function get_shipping_zones_with_cost($pdo, $weight) {
 /**
  * Send Order Invoice Email using PHPMailer
  */
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
 
 function send_order_invoice($pdo, $order_id) {
     // Ensure Composer autoloader is loaded
@@ -1265,3 +1265,70 @@ function send_order_invoice($pdo, $order_id) {
         return false;
     }
 }
+
+/**
+ * Send email verification code to user
+ */
+function send_verification_email($email, $code, $full_name = 'User') {
+    require_once __DIR__ . '/vendor/autoload.php';
+    
+    try {
+        $subject = 'Verify Your RoboMart Account';
+        
+        $message = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+                .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .header h1 { color: #06b6d4; margin: 0; }
+                .code-box { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: #fff; font-size: 32px; letter-spacing: 8px; text-align: center; padding: 20px; border-radius: 10px; margin: 20px 0; font-weight: bold; }
+                .footer { text-align: center; margin-top: 30px; color: #888; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🤖 RoboMart</h1>
+                </div>
+                <p>Hi ' . htmlspecialchars($full_name) . ',</p>
+                <p>Thank you for registering! Please use the verification code below to complete your account setup:</p>
+                <div class="code-box">' . $code . '</div>
+                <p>This code will expire in <strong>15 minutes</strong>.</p>
+                <p>If you did not request this, please ignore this email.</p>
+                <div class="footer">
+                    <p>&copy; ' . date('Y') . ' RoboMart. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        
+        $mail->isSMTP();
+        $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = defined('SMTP_USER') ? SMTP_USER : '';
+        $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : '';
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = defined('SMTP_PORT') ? SMTP_PORT : 587;
+        
+        $mail->setFrom(defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@robomart.com', defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'RoboMart');
+        $mail->addAddress($email, $full_name);
+        
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $message;
+        $mail->AltBody = "Your RoboMart verification code is: $code. This code expires in 15 minutes.";
+        
+        $mail->send();
+        return true;
+        
+    } catch (\Exception $e) {
+        error_log("Failed to send verification email: " . $e->getMessage());
+        return false;
+    }
+}
+

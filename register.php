@@ -36,19 +36,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($existing_user) {
             $error = "An account with this email already exists.";
         } else {
-            // Create new user
+            // Create new user with verification code
             try {
                 $password_hash = hash_password($password);
+                $verification_code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+                $verification_expires = date('Y-m-d H:i:s', strtotime('+15 minutes'));
                 
-                $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)");
-                $stmt->execute([$full_name, $email, $password_hash]);
+                $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password_hash, is_active, verification_code, verification_expires_at) VALUES (?, ?, ?, 0, ?, ?)");
+                $stmt->execute([$full_name, $email, $password_hash, $verification_code, $verification_expires]);
                 
-                $success = "Account created successfully! You can now log in.";
+                // Send verification email
+                send_verification_email($email, $verification_code, $full_name);
                 
-                // Auto-login after registration
-                $user_id = $pdo->lastInsertId();
-                create_session($user_id, $email, $full_name);
-                redirect('account.php');
+                // Store email in session for verification page
+                $_SESSION['pending_verification_email'] = $email;
+                
+                redirect('verify.php');
                 
             } catch (PDOException $e) {
                 error_log("Registration Error: " . $e->getMessage());
