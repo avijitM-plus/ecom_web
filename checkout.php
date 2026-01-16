@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) { // 
     update_user_address($pdo, $user_id, $phone, $address_line, $city, $postal_code, $country);
     
     $address = trim($address_line . ', ' . $city . ', ' . $country . ' ' . $postal_code);
-    $payment_method = $_POST['payment_method'] ?? 'card';
+    $payment_method = $_POST['payment_method'] ?? 'cod';
     
     try {
         $pdo->beginTransaction();
@@ -217,26 +217,19 @@ include 'includes/header.php';
 
                 <h2 class="font-semibold mt-8 mb-4 text-xl border-b pb-2">Payment Method</h2>
                 <div class="space-y-2 mb-6">
-                    <label class="flex items-center space-x-2 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <input type="radio" name="payment_method" value="card" checked>
-                        <span>Credit/Debit Card</span>
-                        <i class="fab fa-cc-visa ml-auto text-xl text-blue-600"></i>
+                    <label class="flex items-center space-x-2 p-3 border rounded opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700">
+                        <input type="radio" name="payment_method" value="card" disabled>
+                        <span class="text-gray-500">Credit/Debit Card</span>
+                        <span class="ml-2 text-xs text-red-500">(Coming Soon)</span>
+                        <i class="fab fa-cc-visa ml-auto text-xl text-gray-400"></i>
                     </label>
-                    <label class="flex items-center space-x-2 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <input type="radio" name="payment_method" value="cod">
+                    <label class="flex items-center space-x-2 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-electric bg-green-50 dark:bg-gray-600">
+                        <input type="radio" name="payment_method" value="cod" checked>
                         <span>Cash on Delivery</span>
                         <i class="fas fa-money-bill-wave ml-auto text-xl text-green-600"></i>
                     </label>
                 </div>
-
-                <h2 class="font-semibold mb-4">Card Details</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-50 pointer-events-none">
-                     <input type="text" placeholder="Cardholder Name" class="col-span-2 px-3 py-2 border rounded">
-                     <input type="text" placeholder="Card Number" class="col-span-2 px-3 py-2 border rounded">
-                     <input type="text" placeholder="MM/YY" class="px-3 py-2 border rounded">
-                     <input type="text" placeholder="CVC" class="px-3 py-2 border rounded">
-                </div>
-                <p class="text-xs text-gray-500 mt-2">* Payment integration simulated for demo.</p>
+                <p class="text-xs text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i> Only Cash on Delivery is available at this time.</p>
 
                 <button type="submit" name="place_order" class="mt-8 w-full bg-electric text-white px-6 py-4 rounded-lg font-bold hover:bg-tech transition duration-300 shadow-lg">
                     Confirm Order (৳<?php echo number_format($total, 2); ?>)

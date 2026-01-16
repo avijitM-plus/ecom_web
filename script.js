@@ -46,15 +46,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }));
     })();
 
-    // ===== SEARCH (guarded) =====
-    (function initSearch() {
-        const searchInput = document.querySelector('input[type="text"]');
-        const searchIcon = document.querySelector('.fa-search');
-        if (!searchInput || !searchIcon) return;
-        const searchButton = searchIcon.closest('button') || searchIcon.parentElement;
-        if (searchButton) searchButton.addEventListener('click', function () { if (searchInput.value.trim() !== '') alert(`Searching for: ${searchInput.value}`); else alert('Please enter a search term'); });
-        searchInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') { if (searchInput.value.trim() !== '') alert(`Searching for: ${searchInput.value}`); else alert('Please enter a search term'); } });
-    })();
+    // ===== SEARCH =====
+    // Note: Search is handled by the form's native submission to products.php
+    // No additional JavaScript needed for basic search functionality
 
     // ===== COUNTDOWN (guarded) =====
     (function initCountdown() {
